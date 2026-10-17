@@ -1,0 +1,183 @@
+name: nexusai
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nexusai}
+      POSTGRES_USER: ${POSTGRES_USER:-nexus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in infra/.env}
+      AI_DB_RW_USER: ${AI_DB_RW_USER:-ai_rw}
+      AI_DB_RW_PASSWORD: ${AI_DB_RW_PASSWORD:?Set AI_DB_RW_PASSWORD in infra/.env}
+      AI_DB_RO_USER: ${AI_DB_RO_USER:-ai_readonly}
+      AI_DB_RO_PASSWORD: ${AI_DB_RO_PASSWORD:?Set AI_DB_RO_PASSWORD in infra/.env}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/00-init.sh:ro
+      # init.sql is read BY init.sh (role names from env); it is deliberately NOT placed in initdb.d so it is not run twice.
+      - ./postgres/init.sql:/opt/nexus/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} && psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -tAc \"SELECT to_regclass('ai.document_chunks') IS NOT NULL\" | grep -qx t"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+      start_period: 10s
+    networks: [internal]
+  ai-service:
+    build:
+      context: ../ai-service
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Set INTERNAL_API_KEY}
+      AI_DB_HOST: postgres
+      AI_DB_NAME: ${AI_DB_NAME:-${POSTGRES_DB:-nexusai}}
+      AI_DB_RW_USER: ${AI_DB_RW_USER:-ai_rw}
+      AI_DB_RW_PASSWORD: ${AI_DB_RW_PASSWORD:?Set AI_DB_RW_PASSWORD}
+      AI_DB_RO_USER: ${AI_DB_RO_USER:-ai_readonly}
+      AI_DB_RO_PASSWORD: ${AI_DB_RO_PASSWORD:?Set AI_DB_RO_PASSWORD}
+      LLM_PROVIDER: ${LLM_PROVIDER:-gemini}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GEMINI_MODEL: ${GEMINI_MODEL:-}
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+      GROQ_MODEL: ${GROQ_MODEL:-}
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-BAAI/bge-small-en-v1.5}
+      TAVILY_API_KEY: ${TAVILY_API_KEY:-}
+      WEB_SEARCH_ENABLED: ${WEB_SEARCH_ENABLED:-true}   # global kill switch; per-investigation toggle in the UI (default ON)
+      MAX_LOOPS: ${MAX_LOOPS:-3}
+      CONFIDENCE_MIN: ${CONFIDENCE_MIN:-0.7}
+      TOP_K: ${TOP_K:-8}
+      SQL_ROW_LIMIT: ${SQL_ROW_LIMIT:-200}
+      SQL_TIMEOUT_MS: ${SQL_TIMEOUT_MS:-5000}
+      MAX_TOOL_ATTEMPTS: ${MAX_TOOL_ATTEMPTS:-3}
+      GUARDRAILS_ENABLED: ${GUARDRAILS_ENABLED:-true}
+      PII_REDACTION_ENABLED: ${PII_REDACTION_ENABLED:-true}
+      RERANKER_ENABLED: ${RERANKER_ENABLED:-false}
+      CHUNKING_MODE: ${CHUNKING_MODE:-semantic}
+      LANGFUSE_ENABLED: ${LANGFUSE_ENABLED:-false}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY:-}
+      LANGFUSE_HOST: ${LANGFUSE_HOST:-https://cloud.langfuse.com}
+      LANGFUSE_MASK_CONTENT: ${LANGFUSE_MASK_CONTENT:-true}
+      HF_HOME: /var/cache/huggingface
+      SENTENCE_TRANSFORMERS_HOME: /var/cache/huggingface
+    expose: ["8000"]
+    volumes:
+      - model-cache:/var/cache/huggingface
+    depends_on:
+      postgres: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"]
+      interval: 10s
+      timeout: 4s
+      retries: 30
+      start_period: 180s
+    stop_grace_period: 30s
+    networks: [internal]
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-docker}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-nexusai}
+      POSTGRES_DB: ${POSTGRES_DB:-nexusai}
+      POSTGRES_USER: ${POSTGRES_USER:-nexus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      # Redundant on purpose: Spring Boot binds these directly, whatever the app's own yml maps.
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-nexus}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET}
+      JWT_ACCESS_MINUTES: ${JWT_ACCESS_MINUTES:-15}
+      JWT_REFRESH_DAYS: ${JWT_REFRESH_DAYS:-14}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      REGISTRATION_OPEN: ${REGISTRATION_OPEN:-true}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:?Set ADMIN_EMAIL}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD}
+      INTERNAL_API_KEY: ${INTERNAL_API_KEY:?Set INTERNAL_API_KEY}
+      AI_SERVICE_URL: ${AI_SERVICE_URL:-http://ai-service:8000}
+      UPLOAD_DIR: ${UPLOAD_DIR:-/data/uploads}
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-20}
+      MAX_DOCS_TOTAL: ${MAX_DOCS_TOTAL:-500}
+      APPROVAL_TTL_DAYS: ${APPROVAL_TTL_DAYS:-7}
+      MAX_CONCURRENT_RUNS_PER_USER: ${MAX_CONCURRENT_RUNS_PER_USER:-2}
+      RATE_LIMIT_AUTH_PER_MIN: ${RATE_LIMIT_AUTH_PER_MIN:-10}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:5173}
+    volumes:
+      - uploads:${UPLOAD_DIR:-/data/uploads}
+    depends_on:
+      postgres: { condition: service_healthy }
+      ai-service: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O - http://127.0.0.1:8080/actuator/health | grep -q UP"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 60s
+    stop_grace_period: 45s
+    networks: [internal]
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-/api}
+        VITE_USE_MOCKS: ${VITE_USE_MOCKS:-false}
+    restart: unless-stopped
+    ports: ["3000:80"]
+    depends_on:
+      backend: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+    networks: [internal]
+  prometheus:
+    image: prom/prometheus:v3.7.3
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    expose: ["9090"]
+    depends_on: [backend, ai-service]
+    networks: [internal]
+  grafana:
+    image: grafana/grafana:12.2.1
+    profiles: ["monitoring"]
+    restart: unless-stopped
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:?Set GRAFANA_ADMIN_PASSWORD}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    ports: ["127.0.0.1:3001:3000"]
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on: [prometheus]
+    networks: [internal]
+  ollama:
+    image: ollama/ollama:0.12.6
+    profiles: ["ollama"]
+    restart: unless-stopped
+    volumes: [ollama-data:/root/.ollama]
+    expose: ["11434"]
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+    networks: [internal]
+volumes:
+  postgres-data:
+  uploads:
+  model-cache:
+  grafana-data:
+  ollama-data:
+networks:
+  internal:
+    driver: bridge
