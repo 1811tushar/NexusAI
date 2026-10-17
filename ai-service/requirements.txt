@@ -1,7 +1,7 @@
 # NexusAI ai-service dependencies (AI A + AI B). Lower bounds only: the lockfile is generated in CI/at build time:
 #   uv pip compile requirements.txt -o requirements.lock   (then commit requirements.lock)
 # --- web / config (AI A) ---
-fastapi>=0.110
+fastapi>=0.143.1
 uvicorn[standard]>=0.29
 pydantic>=2.6
 pydantic-settings>=2.2
