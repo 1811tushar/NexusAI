@@ -1,0 +1,10 @@
+Regional Contacts (internal, FAKE DEMO DATA)
+
+North: Arjun Mehta, arjun.mehta@northwind-demo.example, +91 91234 56780
+South: Lena Fischer, lena.fischer@northwind-demo.example, +1 415 555 0132
+West: Carlos Ruiz, carlos.ruiz@northwind-demo.example, +1 212 555 0187
+
+Vendor payment test card (demo only): 4111 1111 1111 1111
+Employee tax id (demo): PAN ABCDE1234F
+Employee national id (demo): Aadhaar 2345 6789 0124
+Visitor record (demo): SSN 123-45-6789
