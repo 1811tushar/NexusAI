@@ -1,13 +1,15 @@
 import { HttpResponse } from 'msw'
 import type { ApiResponse, ErrorCode, PagedResponse, Role, UserDTO } from '@/common/types/api'
 
-export const ok = <T,>(data: T, status = 200) => HttpResponse.json<ApiResponse<T>>({ success: true, data, error: null }, { status })
+// One shared envelope type: handlers mix ok() and fail() in the same resolver, and msw infers a single response-body type per route.
+type Envelope = ApiResponse<unknown>
+export const ok = <T,>(data: T, status = 200): HttpResponse<Envelope> => HttpResponse.json<Envelope>({ success: true, data, error: null }, { status })
 const statusFor: Partial<Record<ErrorCode, number>> = {
   VALIDATION_FAILED: 400, INVALID_CREDENTIALS: 401, UNAUTHENTICATED: 401, FORBIDDEN: 403, NOT_FOUND: 404, DUPLICATE_RESOURCE: 409,
   INVALID_STATE: 409, SELF_APPROVAL_NOT_ALLOWED: 403, RATE_LIMITED: 429, LLM_RATE_LIMITED: 503, AI_SERVICE_UNAVAILABLE: 503, FILE_TOO_LARGE: 413, UNSUPPORTED_FILE_TYPE: 415,
 }
-export const fail = (code: ErrorCode, message: string, details?: Record<string, string>) =>
-  HttpResponse.json<ApiResponse<null>>({ success: false, data: null, error: { code, message, details, requestId: crypto.randomUUID() } }, { status: statusFor[code] ?? 400 })
+export const fail = (code: ErrorCode, message: string, details?: Record<string, string>): HttpResponse<Envelope> =>
+  HttpResponse.json<Envelope>({ success: false, data: null, error: { code, message, details, requestId: crypto.randomUUID() } }, { status: statusFor[code] ?? 400 })
 
 export function paged<T>(all: T[], url: URL): PagedResponse<T> {
   const page = Number(url.searchParams.get('page') ?? 0)
