@@ -1,0 +1,185 @@
+name: eval-ci
+# Hard gate (every push/PR): deterministic safety, failure-handling and retrieval checks that need NO LLM and NO secrets.
+# Informational (manual + weekly): a small real-LLM sample of AGENT vs BASELINE. Never a hard gate (free-tier limits, nondeterminism).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: 'Number of golden questions for the LLM sample'
+        default: '10'
+  schedule:
+    - cron: '23 7 * * 1'
+permissions:
+  contents: read
+concurrency:
+  group: eval-ci-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+jobs:
+  deterministic:
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: nexusai
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexusai"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      INTERNAL_API_KEY: ci-internal-key
+      AI_DB_HOST: localhost
+      AI_DB_NAME: nexusai
+      AI_DB_RW_USER: ai_rw
+      AI_DB_RW_PASSWORD: ci-ai-rw-password
+      AI_DB_RO_USER: ai_readonly
+      AI_DB_RO_PASSWORD: ci-ai-ro-password
+      LLM_PROVIDER: fake
+      EVAL_MODE: ci
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Detect evaluation module
+        id: detect
+        run: |
+          if [ -f ai-service/app/evals/ci_check.py ]; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "::warning::ai-service/app/evals/ci_check.py not found (AI service not merged yet): evaluation gate skipped."; fi
+      - name: Baseline status (warning only, never fails the build)
+        id: baseline
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path('ai-service/evals/baseline_metrics.json')
+          data = json.loads(p.read_text()) if p.exists() else {}
+          measured = data.get('status') == 'MEASURED' and bool(data.get('metrics'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f: f.write(f"measured={'true' if measured else 'false'}\n")
+          if not measured:
+              print('::warning::evals/baseline_metrics.json is not MEASURED yet: regression comparison is skipped; safety checks still gate. Run the evaluation locally and commit the measured baseline.')
+          PY
+      - if: steps.detect.outputs.present == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            ai-service/requirements*.txt
+            ai-service/pyproject.toml
+      - name: Bootstrap database roles and ai schema
+        if: steps.detect.outputs.present == 'true'
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGPASSWORD: ci-postgres-password
+          POSTGRES_USER: nexus
+          POSTGRES_DB: nexusai
+        run: sh infra/postgres/init.sh
+      - name: Install dependencies
+        if: steps.detect.outputs.present == 'true'
+        working-directory: ai-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install -e ".[dev]" || pip install .; fi
+      - name: Deterministic safety, retrieval ablation and failure evaluation (HARD GATE)
+        if: steps.detect.outputs.present == 'true'
+        working-directory: ai-service
+        env:
+          EVAL_BASELINE_MEASURED: ${{ steps.baseline.outputs.measured }}
+        run: python -m app.evals.ci_check
+      - name: Publish job summary
+        if: always() && steps.detect.outputs.present == 'true'
+        working-directory: ai-service
+        run: |
+          python3 - <<'PY'
+          import json, os, pathlib
+          p = pathlib.Path('evals/ci-results.json'); out = pathlib.Path(os.environ['GITHUB_STEP_SUMMARY'])
+          if not p.exists():
+              out.write_text('## Deterministic evaluation\n\n**No results file was produced** (`evals/ci-results.json`). The gate step failed before writing results.\n'); raise SystemExit(0)
+          data = json.loads(p.read_text()); metrics = data.get('metrics', {})
+          lines = ['## Deterministic evaluation', '', '| Metric | Result |', '|---|---:|']
+          lines += [f'| {k} | {v} |' for k, v in metrics.items() if isinstance(v, (str, int, float, bool)) or v is None]
+          lines += ['', f"Status: `{data.get('status', 'n/a')}`", '']
+          out.write_text('\n'.join(lines))
+          PY
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: deterministic-evaluation
+          path: |
+            ai-service/evals/results/
+            ai-service/evals/ci-results.json
+          if-no-files-found: ignore
+  llm-informational:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    continue-on-error: true   # informational by design: free-tier rate limits and nondeterminism make an LLM run unsuitable as a gate
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_DB: nexusai
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexusai"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
+      INTERNAL_API_KEY: ci-internal-key
+      AI_DB_HOST: localhost
+      AI_DB_NAME: nexusai
+      AI_DB_RW_USER: ai_rw
+      AI_DB_RW_PASSWORD: ci-ai-rw-password
+      AI_DB_RO_USER: ai_readonly
+      AI_DB_RO_PASSWORD: ci-ai-ro-password
+      LLM_PROVIDER: gemini
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      GEMINI_MODEL: ${{ vars.GEMINI_MODEL }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Check prerequisites
+        id: pre
+        run: |
+          if [ ! -f ai-service/app/evals/run_eval.py ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "::notice::run_eval.py not present yet.";
+          elif [ -z "$GEMINI_API_KEY" ] || [ -z "$GEMINI_MODEL" ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "::notice::Set secret GEMINI_API_KEY and repository variable GEMINI_MODEL to enable this optional run."
+          else echo "run=true" >> "$GITHUB_OUTPUT"; fi
+      - if: steps.pre.outputs.run == 'true'
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: |
+            ai-service/requirements*.txt
+            ai-service/pyproject.toml
+      - name: Bootstrap database
+        if: steps.pre.outputs.run == 'true'
+        env:
+          PGHOST: localhost
+          PGPORT: '5432'
+          PGPASSWORD: ci-postgres-password
+          POSTGRES_USER: nexus
+          POSTGRES_DB: nexusai
+        run: sh infra/postgres/init.sh
+      - name: Install dependencies
+        if: steps.pre.outputs.run == 'true'
+        working-directory: ai-service
+        run: |
+          python -m pip install --upgrade pip
+          pip install --index-url https://download.pytorch.org/whl/cpu torch
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install -e ".[dev]" || pip install .; fi
+      - name: AGENT vs BASELINE sample (informational)
+        if: steps.pre.outputs.run == 'true'
+        working-directory: ai-service
+        run: python -m app.evals.run_eval --system both --limit "${{ github.event.inputs.limit || '10' }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        if: always()
+        with:
+          name: llm-evaluation-informational
+          path: ai-service/evals/results/
+          if-no-files-found: ignore

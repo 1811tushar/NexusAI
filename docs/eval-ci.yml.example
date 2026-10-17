@@ -1,0 +1,42 @@
+# docs/eval-ci.yml.example -> .github/workflows/eval-ci.yml (infra stream owns the final workflow; this is the AI B job).
+name: eval-ci
+on:
+  push: { paths: ["ai-service/**"] }
+  pull_request: { paths: ["ai-service/**"] }
+jobs:
+  eval-ci:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env: { POSTGRES_PASSWORD: postgres }
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    defaults: { run: { working-directory: ai-service } }
+    env:
+      TEST_ADMIN_DSN: postgresql://postgres:postgres@localhost:5432/postgres
+      INTERNAL_API_KEY: ci-internal-key-0123456789
+      AI_DB_HOST: localhost
+      AI_DB_NAME: nexusai
+      AI_DB_RW_PASSWORD: rw_test_pw
+      AI_DB_RO_PASSWORD: ro_test_pw
+    steps:
+      - uses: actions/checkout@v4            # pin to a commit SHA in the real workflow
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12", cache: pip }
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu && pip install -r requirements.txt
+      - uses: actions/cache@v4                # embedding model cache
+        with: { path: ~/.cache/huggingface, key: hf-bge-small-v1.5 }
+      - name: Prepare database (roles, extension, schema ai)
+        run: |
+          PGPASSWORD=postgres psql -h localhost -U postgres -f sql/dev_bootstrap.sql
+      - name: eval-ci gate (safety tests + retrieval ablation vs stored baseline)
+        env: { EMBEDDING_MODEL: BAAI/bge-small-en-v1.5 }
+        run: python -m app.evals.ci_check
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with: { name: eval-ci, path: ai-service/app/evals/results }
+# ADD-CI-02 (informational, not a gate): a second workflow with `workflow_dispatch` + weekly `schedule` that runs
+#   python -m app.evals.run_eval --system both --limit 10 --sleep 5
+# with GEMINI_API_KEY from a repository secret, and uploads app/evals/results as an artifact.
