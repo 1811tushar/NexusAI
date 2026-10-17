@@ -1,0 +1,57 @@
+{
+  "hashing": {
+    "k": 5,
+    "questions": 37,
+    "recordedAt": "2026-10-15",
+    "variants": {
+      "fixed|HYBRID|off": {
+        "hit5": 0.946,
+        "mrr": 0.835
+      },
+      "fixed|HYBRID|on": {
+        "hit5": 0.946,
+        "mrr": 0.743
+      },
+      "fixed|KEYWORD|off": {
+        "hit5": 0.973,
+        "mrr": 0.869
+      },
+      "fixed|KEYWORD|on": {
+        "hit5": 0.973,
+        "mrr": 0.776
+      },
+      "fixed|VECTOR|off": {
+        "hit5": 0.865,
+        "mrr": 0.685
+      },
+      "fixed|VECTOR|on": {
+        "hit5": 0.946,
+        "mrr": 0.743
+      },
+      "semantic|HYBRID|off": {
+        "hit5": 0.946,
+        "mrr": 0.786
+      },
+      "semantic|HYBRID|on": {
+        "hit5": 0.919,
+        "mrr": 0.745
+      },
+      "semantic|KEYWORD|off": {
+        "hit5": 1.0,
+        "mrr": 0.894
+      },
+      "semantic|KEYWORD|on": {
+        "hit5": 0.946,
+        "mrr": 0.775
+      },
+      "semantic|VECTOR|off": {
+        "hit5": 0.811,
+        "mrr": 0.62
+      },
+      "semantic|VECTOR|on": {
+        "hit5": 0.919,
+        "mrr": 0.745
+      }
+    }
+  }
+}
