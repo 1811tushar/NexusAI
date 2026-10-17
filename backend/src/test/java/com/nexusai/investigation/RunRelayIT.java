@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.nexusai.user.Role;
 import java.time.Duration;
@@ -109,13 +110,13 @@ class RunRelayIT extends RunTestSupport {
 
     @Test
     void connectionDropAndUpstreamErrorsFailTheRunWithAReadableReason() {
-        AI.stubFor(post(urlEqualTo("/internal/investigate")).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
+        AI.stubFor(WireMock.post(urlEqualTo("/internal/investigate")).willReturn(aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)));
         long a = startRun(sessionFor(Role.ANALYST));
         awaitStatus(a, "FAILED");
         assertThat(jdbc.queryForObject("select error_message from investigations where id = ?", String.class, a)).isNotBlank();
 
         AI.resetAll();
-        AI.stubFor(post(urlEqualTo("/internal/investigate")).willReturn(aResponse().withStatus(429).withBody("{\"detail\":\"slow down\"}")));
+        AI.stubFor(WireMock.post(urlEqualTo("/internal/investigate")).willReturn(aResponse().withStatus(429).withBody("{\"detail\":\"slow down\"}")));
         long b = startRun(sessionFor(Role.ANALYST));
         awaitStatus(b, "FAILED");
         assertThat(jdbc.queryForObject("select payload->>'code' from agent_steps where investigation_id = ? and type = 'error'", String.class, b)).isEqualTo("LLM_RATE_LIMITED");
