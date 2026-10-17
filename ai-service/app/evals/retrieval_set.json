@@ -1,0 +1,350 @@
+[
+  {
+    "id": "r01",
+    "question": "Which supplier delayed shipments to the West?",
+    "expectedDocument": "supplier_incident_report_may_2026",
+    "mustContain": [
+      "Helix Home Components"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r02",
+    "question": "When did the Helix shipment delays start and end?",
+    "expectedDocument": "supplier_incident_report_may_2026",
+    "mustContain": [
+      "May 6",
+      "June 24"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r03",
+    "question": "Why were Home products out of stock in the West in June?",
+    "expectedDocument": "supplier_incident_report_may_2026",
+    "mustContain": [
+      "out of stock",
+      "fire"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r04",
+    "question": "Which products were affected by the stock-out?",
+    "expectedDocument": "supplier_incident_report_may_2026",
+    "mustContain": [
+      "HOM-101",
+      "Aero Air Purifier"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r05",
+    "question": "What caused the customers to leave the West in May and June?",
+    "expectedDocument": "supplier_incident_report_may_2026",
+    "mustContain": [
+      "churn",
+      "switched"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r06",
+    "question": "When did stock return to normal and what was done about supplier risk?",
+    "expectedDocument": "supplier_incident_report_may_2026",
+    "mustContain": [
+      "July 2026",
+      "second supplier"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r07",
+    "question": "Who is our main competitor in the West?",
+    "expectedDocument": "competitor_pricing_note_west",
+    "mustContain": [
+      "HomeNest"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r08",
+    "question": "How large was the competitor discount and when did it start?",
+    "expectedDocument": "competitor_pricing_note_west",
+    "mustContain": [
+      "15 percent",
+      "April 14"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r09",
+    "question": "What was the name of the competitor's promotion?",
+    "expectedDocument": "competitor_pricing_note_west",
+    "mustContain": [
+      "Spring Home Sale"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r10",
+    "question": "Did we respond to the rival's lower prices?",
+    "expectedDocument": "competitor_pricing_note_west",
+    "mustContain": [
+      "held unchanged",
+      "monitor"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r11",
+    "question": "Why did price-sensitive shoppers in the West move away in April?",
+    "expectedDocument": "competitor_pricing_note_west",
+    "mustContain": [
+      "HomeNest",
+      "price-sensitive"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r12",
+    "question": "What was decided on March 28 about South marketing?",
+    "expectedDocument": "marketing_plan_h1_2026",
+    "mustContain": [
+      "March 28",
+      "45%"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r13",
+    "question": "Why was South spend cut in April and May?",
+    "expectedDocument": "marketing_plan_h1_2026",
+    "mustContain": [
+      "East region campaign pilot"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r14",
+    "question": "What was the planned monthly marketing budget for the West?",
+    "expectedDocument": "marketing_plan_h1_2026",
+    "mustContain": [
+      "West $20,000"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r15",
+    "question": "How was marketing budget split between channels?",
+    "expectedDocument": "marketing_plan_h1_2026",
+    "mustContain": [
+      "Search 50%",
+      "Social 30%"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r16",
+    "question": "How many new customers did the South acquire after the cut?",
+    "expectedDocument": "marketing_plan_h1_2026",
+    "mustContain": [
+      "new-customer acquisition"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r17",
+    "question": "Who can approve a price change above 10 percent?",
+    "expectedDocument": "pricing_policy",
+    "mustContain": [
+      "Approver role"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r18",
+    "question": "What is the largest price change allowed?",
+    "expectedDocument": "pricing_policy",
+    "mustContain": [
+      "30%"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r19",
+    "question": "How often may a product price be changed?",
+    "expectedDocument": "pricing_policy",
+    "mustContain": [
+      "once per quarter"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r20",
+    "question": "Who signs off on small price adjustments of up to five percent?",
+    "expectedDocument": "pricing_policy",
+    "mustContain": [
+      "category manager"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r21",
+    "question": "Are promotional discounts treated as price changes?",
+    "expectedDocument": "pricing_policy",
+    "mustContain": [
+      "Promotions",
+      "below 5%"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r22",
+    "question": "Can an analyst approve their own investigation's action?",
+    "expectedDocument": "approval_policy",
+    "mustContain": [
+      "own investigation",
+      "separation of duties"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r23",
+    "question": "How long does a pending approval stay valid?",
+    "expectedDocument": "approval_policy",
+    "mustContain": [
+      "7 days"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r24",
+    "question": "Which actions need an approver decision?",
+    "expectedDocument": "approval_policy",
+    "mustContain": [
+      "Adjust price",
+      "Pause campaign"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r25",
+    "question": "Which actions run automatically without a person?",
+    "expectedDocument": "approval_policy",
+    "mustContain": [
+      "Flag for review",
+      "no approval needed"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r26",
+    "question": "What happens to a rejected action?",
+    "expectedDocument": "approval_policy",
+    "mustContain": [
+      "rejected action is final"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r27",
+    "question": "Why does apparel sell less in the second quarter every year?",
+    "expectedDocument": "seasonality_memo",
+    "mustContain": [
+      "wardrobes",
+      "second quarter"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r28",
+    "question": "Is the East apparel dip a performance issue?",
+    "expectedDocument": "seasonality_memo",
+    "mustContain": [
+      "not a performance problem"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r29",
+    "question": "What was the East apparel change in 2025 from Q1 to Q2?",
+    "expectedDocument": "seasonality_memo",
+    "mustContain": [
+      "-6.3"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r30",
+    "question": "What was total revenue in Q1 2026?",
+    "expectedDocument": "q1_2026_business_review",
+    "mustContain": [
+      "2,768,725"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r31",
+    "question": "How did the West Home category perform in the first quarter?",
+    "expectedDocument": "q1_2026_business_review",
+    "mustContain": [
+      "345,150"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r32",
+    "question": "By how much did revenue decline in the second quarter?",
+    "expectedDocument": "q2_2026_business_review",
+    "mustContain": [
+      "5.9%"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r33",
+    "question": "What should management investigate after the Q2 results?",
+    "expectedDocument": "q2_2026_business_review",
+    "mustContain": [
+      "Items for management to investigate"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r34",
+    "question": "Where did the Q2 decline come from?",
+    "expectedDocument": "q2_2026_business_review",
+    "mustContain": [
+      "concentrated in the West"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r35",
+    "question": "Which region manager said East apparel collapsed?",
+    "expectedDocument": "regional_digest_april_june",
+    "mustContain": [
+      "East apparel collapsed"
+    ],
+    "style": "lexical"
+  },
+  {
+    "id": "r36",
+    "question": "Who should we contact in the West region?",
+    "expectedDocument": "regional_contacts",
+    "mustContain": [
+      "Carlos Ruiz"
+    ],
+    "style": "paraphrase"
+  },
+  {
+    "id": "r37",
+    "question": "What is the Pune office kitchen closure about?",
+    "expectedDocument": "office_relocation_notice",
+    "mustContain": [
+      "repainting"
+    ],
+    "style": "lexical"
+  }
+]

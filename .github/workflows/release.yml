@@ -1,0 +1,66 @@
+name: release
+on:
+  push:
+    tags: ['v*']
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  gate:
+    # Refuse to publish images for a commit whose required checks did not succeed.
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      checks: read
+    steps:
+      - name: Wait for and verify required checks on the tagged commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REQUIRED: 'frontend backend verify test compose-smoke deterministic static db-roles nginx'
+        run: |
+          sha="${{ github.sha }}"; repo="${{ github.repository }}"
+          for attempt in $(seq 1 40); do
+            runs="$(gh api "repos/$repo/commits/$sha/check-runs?per_page=100" --jq '.check_runs')"
+            failed=""; pending=""
+            for name in $REQUIRED; do
+              n="$(jq --arg n "$name" '[.[] | select(.name==$n)] | length' <<<"$runs")"
+              [ "$n" -eq 0 ] && continue   # job not applicable to this repository state (e.g. path-filtered)
+              if jq -e --arg n "$name" '[.[] | select(.name==$n and .status!="completed")] | length > 0' <<<"$runs" >/dev/null; then pending="$pending $name"; continue; fi
+              if jq -e --arg n "$name" '[.[] | select(.name==$n and .conclusion!="success" and .conclusion!="skipped" and .conclusion!="neutral")] | length > 0' <<<"$runs" >/dev/null; then failed="$failed $name"; fi
+            done
+            [ -n "$failed" ] && { echo "Required checks failed:$failed"; exit 1; }
+            [ -z "$pending" ] && { echo "All applicable required checks passed."; exit 0; }
+            echo "Waiting for:$pending (attempt $attempt/40)"; sleep 30
+          done
+          echo "Timed out waiting for checks"; exit 1
+  publish:
+    needs: gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service: [backend, ai-service, frontend]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Set lowercase image owner
+        id: image
+        run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+      - name: Login to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+      - name: Build and push
+        run: |
+          image="ghcr.io/${{ steps.image.outputs.owner }}/nexusai-${{ matrix.service }}"
+          tags=(-t "$image:${{ github.ref_name }}")
+          case "${{ github.ref_name }}" in *-*) ;; *) tags+=(-t "$image:latest");; esac   # 'latest' only for non-prerelease tags
+          docker build "${tags[@]}" \
+            --label org.opencontainers.image.source="${{ github.server_url }}/${{ github.repository }}" \
+            --label org.opencontainers.image.revision="${{ github.sha }}" \
+            --label org.opencontainers.image.version="${{ github.ref_name }}" \
+            ./${{ matrix.service }}
+          docker push --all-tags "$image"

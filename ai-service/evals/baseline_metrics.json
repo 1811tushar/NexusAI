@@ -1,0 +1,7 @@
+{
+  "status": "NOT_MEASURED",
+  "metrics": {},
+  "recordedAt": null,
+  "commit": null,
+  "note": "Replace with real values after running python -m app.evals.run_eval and app.evals.retrieval_ablation; never copy illustrative numbers."
+}

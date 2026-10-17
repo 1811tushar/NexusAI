@@ -1,0 +1,25 @@
+name: nexusai-dev-db
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-nexusai}
+      POSTGRES_USER: ${POSTGRES_USER:-nexus}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dev-postgres-password-change-me}
+      AI_DB_RW_USER: ${AI_DB_RW_USER:-ai_rw}
+      AI_DB_RW_PASSWORD: ${AI_DB_RW_PASSWORD:-dev-ai-rw-password-change-me}
+      AI_DB_RO_USER: ${AI_DB_RO_USER:-ai_readonly}
+      AI_DB_RO_PASSWORD: ${AI_DB_RO_PASSWORD:-dev-ai-readonly-password-change-me}
+    ports: ["5432:5432"]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init.sh:/docker-entrypoint-initdb.d/00-init.sh:ro
+      # init.sql is read BY init.sh (role names from env); it is deliberately NOT placed in initdb.d so it is not run twice.
+      - ./postgres/init.sql:/opt/nexus/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB} && psql -U $${POSTGRES_USER} -d $${POSTGRES_DB} -tAc \"SELECT to_regclass('ai.document_chunks') IS NOT NULL\" | grep -qx t"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+volumes:
+  postgres-data:

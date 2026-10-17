@@ -1,0 +1,32 @@
+name: backend-ci
+on:
+  pull_request:
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+  push:
+    paths: ['backend/**', '.github/workflows/backend-ci.yml']
+permissions:
+  contents: read
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Detect backend project
+        id: detect
+        run: |
+          if [ -f backend/pom.xml ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; echo "::warning::backend/pom.xml not found: backend sources are not in the repository yet, skipping."; fi
+      - if: steps.detect.outputs.present == 'true'
+        uses: actions/setup-java@de7274f081f381c8f8158605e0321c36c376e2e6
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - if: steps.detect.outputs.present == 'true'
+        name: Build and test (Testcontainers needs the runner's Docker)
+        working-directory: backend
+        run: mvn -B verify

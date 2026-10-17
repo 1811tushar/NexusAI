@@ -1,0 +1,231 @@
+{
+  "by_category": {
+    "Apparel": {
+      "pct": -4.4,
+      "q1": 733275.0,
+      "q2": 701360.0
+    },
+    "Electronics": {
+      "pct": 5.6,
+      "q1": 848080.0,
+      "q2": 895265.0
+    },
+    "Home": {
+      "pct": -15.0,
+      "q1": 1187370.0,
+      "q2": 1009350.0
+    }
+  },
+  "by_region": {
+    "East": {
+      "pct": 0.2,
+      "q1": 582125.0,
+      "q2": 583190.0
+    },
+    "North": {
+      "pct": 6.9,
+      "q1": 729980.0,
+      "q2": 780400.0
+    },
+    "South": {
+      "pct": -10.2,
+      "q1": 655495.0,
+      "q2": 588790.0
+    },
+    "West": {
+      "pct": -18.4,
+      "q1": 801125.0,
+      "q2": 653595.0
+    }
+  },
+  "category_q2_revenue_ranking": [
+    "Home",
+    "Electronics",
+    "Apparel"
+  ],
+  "east_apparel_q2_vs_q1_2025_pct": -6.3,
+  "east_apparel_q2_vs_q1_2026_pct": -4.6,
+  "groups": {
+    "East/Apparel": {
+      "change": -7040.0,
+      "pct": -4.6,
+      "q1": 154130.0,
+      "q2": 147090.0,
+      "share_of_net_change_pct": 4.3
+    },
+    "East/Electronics": {
+      "change": 6125.0,
+      "pct": 3.4,
+      "q1": 179385.0,
+      "q2": 185510.0,
+      "share_of_net_change_pct": -3.8
+    },
+    "East/Home": {
+      "change": 1980.0,
+      "pct": 0.8,
+      "q1": 248610.0,
+      "q2": 250590.0,
+      "share_of_net_change_pct": -1.2
+    },
+    "North/Apparel": {
+      "change": -1380.0,
+      "pct": -0.7,
+      "q1": 193375.0,
+      "q2": 191995.0,
+      "share_of_net_change_pct": 0.8
+    },
+    "North/Electronics": {
+      "change": 46640.0,
+      "pct": 20.8,
+      "q1": 224665.0,
+      "q2": 271305.0,
+      "share_of_net_change_pct": -28.7
+    },
+    "North/Home": {
+      "change": 5160.0,
+      "pct": 1.7,
+      "q1": 311940.0,
+      "q2": 317100.0,
+      "share_of_net_change_pct": -3.2
+    },
+    "South/Apparel": {
+      "change": -20610.0,
+      "pct": -11.9,
+      "q1": 173600.0,
+      "q2": 152990.0,
+      "share_of_net_change_pct": 12.7
+    },
+    "South/Electronics": {
+      "change": -16245.0,
+      "pct": -8.1,
+      "q1": 200225.0,
+      "q2": 183980.0,
+      "share_of_net_change_pct": 10.0
+    },
+    "South/Home": {
+      "change": -29850.0,
+      "pct": -10.6,
+      "q1": 281670.0,
+      "q2": 251820.0,
+      "share_of_net_change_pct": 18.3
+    },
+    "West/Apparel": {
+      "change": -2885.0,
+      "pct": -1.4,
+      "q1": 212170.0,
+      "q2": 209285.0,
+      "share_of_net_change_pct": 1.8
+    },
+    "West/Electronics": {
+      "change": 10665.0,
+      "pct": 4.4,
+      "q1": 243805.0,
+      "q2": 254470.0,
+      "share_of_net_change_pct": -6.6
+    },
+    "West/Home": {
+      "change": -155310.0,
+      "pct": -45.0,
+      "q1": 345150.0,
+      "q2": 189840.0,
+      "share_of_net_change_pct": 95.4
+    }
+  },
+  "marketing_spend": {
+    "East": {
+      "q1": 49329.21,
+      "q2": 49628.4
+    },
+    "North": {
+      "q1": 56265.31,
+      "q2": 56035.54
+    },
+    "South": {
+      "q1": 68364.2,
+      "q2": 45784.95
+    },
+    "West": {
+      "q1": 61468.26,
+      "q2": 62729.11
+    }
+  },
+  "months": [
+    "2025-01",
+    "2025-02",
+    "2025-03",
+    "2025-04",
+    "2025-05",
+    "2025-06",
+    "2025-07",
+    "2025-08",
+    "2025-09",
+    "2025-10",
+    "2025-11",
+    "2025-12",
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09"
+  ],
+  "ranking_by_decline": [
+    "West/Home",
+    "South/Home",
+    "South/Apparel",
+    "South/Electronics"
+  ],
+  "region_growth_ranking": [
+    "North",
+    "East",
+    "South",
+    "West"
+  ],
+  "revenue_2025_total": 11139685.0,
+  "sales_row_count": 1008,
+  "seed": 20260101,
+  "south_marketing": {
+    "pct": -33.0,
+    "q1": 68364.2,
+    "q2": 45784.95
+  },
+  "south_new_customers": {
+    "q1": 1330.0,
+    "q2": 965.0
+  },
+  "south_region_change": -66705.0,
+  "south_region_share_of_net_change_pct": 41.0,
+  "total_revenue": {
+    "change": -162750.0,
+    "pct": -5.9,
+    "q1_2026": 2768725.0,
+    "q2_2026": 2605975.0
+  },
+  "total_revenue_q2_2025": 2697190.0,
+  "units_by_product_q2_2026": {
+    "1": 2217.0,
+    "10": 2505.0,
+    "11": 1361.0,
+    "12": 5692.0,
+    "2": 1815.0,
+    "3": 3009.0,
+    "4": 1413.0,
+    "5": 1949.0,
+    "6": 727.0,
+    "7": 4865.0,
+    "8": 2439.0,
+    "9": 1712.0
+  },
+  "west_churned_customers": {
+    "q1": 960.0,
+    "q2": 1538.0
+  },
+  "west_home_units": {
+    "q1": 2896.0,
+    "q2": 1590.0
+  },
+  "yoy_q2_pct": -3.4
+}

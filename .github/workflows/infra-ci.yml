@@ -1,0 +1,67 @@
+name: infra-ci
+# Verifies the infrastructure itself with real tools: script lint, compose validity, database role isolation, nginx behaviour, fake AI stub.
+on:
+  pull_request:
+    paths: ['infra/**', 'frontend/nginx.conf', 'frontend/security-headers.conf', 'frontend/Dockerfile', 'backend/Dockerfile', 'ai-service/Dockerfile', '.github/workflows/infra-ci.yml']
+  push:
+    paths: ['infra/**', 'frontend/nginx.conf', 'frontend/security-headers.conf', 'frontend/Dockerfile', 'backend/Dockerfile', 'ai-service/Dockerfile', '.github/workflows/infra-ci.yml']
+permissions:
+  contents: read
+concurrency:
+  group: infra-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  static:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: ShellCheck and syntax
+        run: |
+          shopt -s globstar nullglob
+          for f in infra/scripts/*.sh infra/postgres/init.sh; do bash -n "$f"; done
+          shellcheck -S warning -e SC1090,SC1091 infra/scripts/*.sh infra/postgres/init.sh
+      - name: YAML and JSON validity
+        run: |
+          python3 - <<'PY'
+          import glob, json, yaml
+          for f in glob.glob('.github/**/*.yml', recursive=True) + glob.glob('infra/**/*.yml', recursive=True): yaml.safe_load(open(f))
+          for f in glob.glob('infra/**/*.json', recursive=True) + glob.glob('docs/**/*.json', recursive=True): json.load(open(f))
+          print('yaml/json ok')
+          PY
+      - name: Compose files are valid (all combinations)
+        run: |
+          cp infra/.env.example infra/.env
+          docker compose -f infra/docker-compose.yml --env-file infra/.env config --quiet
+          docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env config --quiet
+          docker compose -f infra/docker-compose.yml --env-file infra/.env --profile monitoring --profile ollama config --quiet
+          docker compose -f infra/docker-compose.dev.yml --env-file infra/.env config --quiet
+      - name: Production env preflight rejects development placeholders
+        run: |
+          cp infra/.env.example infra/.env
+          sed -i 's/^SPRING_PROFILES_ACTIVE=.*/SPRING_PROFILES_ACTIVE=prod/' infra/.env || echo 'SPRING_PROFILES_ACTIVE=prod' >> infra/.env
+          if bash infra/scripts/check-env.sh; then echo 'preflight should have failed for placeholder values'; exit 1; fi
+  db-roles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Prove ai_rw / ai_readonly privileges with real SQL
+        run: bash infra/scripts/db-privilege-probe.sh
+  nginx:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Real nginx behaviour (large upload, SSE streaming, locked-down actuator, caching)
+        run: bash infra/scripts/nginx-test.sh
+  fake-ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        with:
+          python-version: '3.12'
+      - name: Fake AI stub honours the contract
+        run: python3 infra/tests/fake-ai/test_fake_ai.py

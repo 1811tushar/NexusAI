@@ -1,0 +1,41 @@
+name: integration-ci
+on:
+  pull_request:
+    paths: ['frontend/**', 'backend/**', 'ai-service/**', 'infra/**', '.github/workflows/integration-ci.yml']
+  push:
+    paths: ['frontend/**', 'backend/**', 'ai-service/**', 'infra/**', '.github/workflows/integration-ci.yml']
+permissions:
+  contents: read
+concurrency:
+  group: integration-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compose-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Detect full stack
+        id: detect
+        run: |
+          if [ -f frontend/package.json ] && [ -f backend/pom.xml ]; then echo "present=true" >> "$GITHUB_OUTPUT"; else echo "present=false" >> "$GITHUB_OUTPUT"; echo "::warning::frontend and backend sources are not both present yet: compose smoke test skipped."; fi
+      - name: Create ephemeral test environment
+        if: steps.detect.outputs.present == 'true'
+        run: |
+          cp infra/.env.example infra/.env
+          # CI only: no LLM key and no web search (the fake AI stub replaces the AI service)
+          sed -i 's/^GEMINI_API_KEY=.*/GEMINI_API_KEY=/' infra/.env
+          sed -i 's/^WEB_SEARCH_ENABLED=.*/WEB_SEARCH_ENABLED=false/' infra/.env
+          sed -i 's/^ADMIN_PASSWORD=.*/ADMIN_PASSWORD=TestAdmin-Password-12345/' infra/.env
+      - name: Start services and wait for health
+        if: steps.detect.outputs.present == 'true'
+        run: docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env up --build --wait --wait-timeout 600
+      - name: Smoke test (fake AI mode)
+        if: steps.detect.outputs.present == 'true'
+        run: bash infra/scripts/smoke-test.sh --fake-ai
+      - name: Dump logs on failure
+        if: failure()
+        run: docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env logs --no-color
+      - name: Stop and remove ephemeral volumes
+        if: always() && steps.detect.outputs.present == 'true'
+        run: docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env down -v --remove-orphans

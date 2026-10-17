@@ -1,0 +1,15 @@
+# No secret defaults here: ProdConfigValidator fails startup if any are missing.
+server:
+  forward-headers-strategy: native
+spring:
+  flyway:
+    out-of-order: false
+nexus:
+  cookie-secure: ${COOKIE_SECURE:true}
+  registration-open: ${REGISTRATION_OPEN:false}
+  docs-public: false
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_ENABLED:true}   # reachable by ADMIN only (SecurityConfig); Swagger UI stays off
+  swagger-ui:
+    enabled: false
