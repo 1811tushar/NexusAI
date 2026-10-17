@@ -1,0 +1,17 @@
+# DEV DEFAULTS ONLY. Never use these values outside a developer machine.
+spring:
+  datasource:
+    password: ${POSTGRES_PASSWORD:nexus_dev}
+  flyway:
+    out-of-order: true     # lets Backend B's V3/V4/V6/V7 apply after V1/V2/V5 on an existing dev DB
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+nexus:
+  jwt:
+    secret: ${JWT_SECRET:dev-only-jwt-secret-change-me-0123456789abcdef}
+  internal-api-key: ${INTERNAL_API_KEY:dev-only-internal-key}
+  registration-open: ${REGISTRATION_OPEN:true}
+  docs-public: true

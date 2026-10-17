@@ -1,0 +1,24 @@
+nexus:
+  jwt:
+    secret: test-only-jwt-secret-0123456789abcdef0123456789
+  internal-api-key: test-internal-key
+  bcrypt-strength: 4
+  registration-open: true
+  rate-limit:
+    auth-per-min: 100000
+    upload-per-min: 100000
+    investigation-start-per-min: 100000
+  sweeper:
+    interval-ms: 3600000
+    stuck-ingesting-minutes: 10
+  runs:
+    expiry-job-interval-ms: 3600000
+    stream-idle-timeout-sec: 20
+    heartbeat-seconds: 1
+spring:
+  flyway:
+    out-of-order: true
+logging:
+  level:
+    root: WARN
+    com.nexusai: INFO
