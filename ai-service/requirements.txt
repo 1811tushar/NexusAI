@@ -12,7 +12,7 @@ pgvector>=0.2.5
 numpy>=1.26
 # --- embeddings (AI A). CPU-only torch is installed FIRST in the Dockerfile from the PyTorch CPU index.
 #     Locally (Windows): pip install torch --index-url https://download.pytorch.org/whl/cpu   then the rest.
-sentence-transformers>=3.0
+sentence-transformers>=6.1.0
 # --- loaders / chunking (AI A) ---
 pypdf>=4.2
 python-docx>=1.1
