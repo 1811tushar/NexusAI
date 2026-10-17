@@ -1,0 +1,38 @@
+# NexusAI ai-service dependencies (AI A + AI B). Lower bounds only: the lockfile is generated in CI/at build time:
+#   uv pip compile requirements.txt -o requirements.lock   (then commit requirements.lock)
+# --- web / config (AI A) ---
+fastapi>=0.110
+uvicorn[standard]>=0.29
+pydantic>=2.6
+pydantic-settings>=2.2
+python-multipart>=0.0.9
+# --- database / vectors (AI A) ---
+psycopg[binary,pool]>=3.1.18
+pgvector>=0.2.5
+numpy>=1.26
+# --- embeddings (AI A). CPU-only torch is installed FIRST in the Dockerfile from the PyTorch CPU index.
+#     Locally (Windows): pip install torch --index-url https://download.pytorch.org/whl/cpu   then the rest.
+sentence-transformers>=3.0
+# --- loaders / chunking (AI A) ---
+pypdf>=4.2
+python-docx>=1.1
+langchain-text-splitters>=0.2
+# --- agents / LLM (AI B; listed here so one image serves both) ---
+langgraph>=0.4             # AI B graph + interrupt()/Command; tested with 1.2.x
+langgraph-checkpoint-postgres>=2.0   # AsyncPostgresSaver; tested with 3.x
+langchain-core>=0.3
+langchain-google-genai>=2.0
+langchain-ollama>=0.2
+langchain-groq>=0.2        # optional provider
+tenacity>=8.2
+tavily-python>=0.5
+ddgs>=9.0
+sqlglot>=25.0
+pandas>=2.2
+langfuse>=2.0
+# --- dev / test ---
+pytest>=8.0
+pytest-asyncio>=0.23
+httpx>=0.27
+ruff>=0.4
+testcontainers[postgres]>=4.0
