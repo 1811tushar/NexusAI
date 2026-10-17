@@ -146,7 +146,7 @@ services:
     depends_on: [backend, ai-service]
     networks: [internal]
   grafana:
-    image: grafana/grafana:12.2.1
+    image: grafana/grafana:13.2.4
     profiles: ["monitoring"]
     restart: unless-stopped
     environment:
