@@ -1,0 +1,8 @@
+# Test-only override: replaces the AI container image with a deterministic internal stub.
+# It preserves the service name, internal-only network boundary, healthcheck and backend URL.
+services:
+  ai-service:
+    build:
+      context: ./fake-ai
+      dockerfile: Dockerfile
+    command: ["python", "/app/app.py"]
