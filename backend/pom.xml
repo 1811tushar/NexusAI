@@ -22,7 +22,7 @@
     <jjwt.version>0.12.6</jjwt.version>
     <springdoc.version>2.8.9</springdoc.version>
     <bucket4j.version>8.14.0</bucket4j.version>
-    <logstash-encoder.version>8.1</logstash-encoder.version>
+    <logstash-encoder.version>9.0</logstash-encoder.version>
     <wiremock.version>3.9.2</wiremock.version>
   </properties>
 
