@@ -1,0 +1,2 @@
+CREATE TABLE audit_log (id BIGSERIAL PRIMARY KEY, user_id BIGINT, action VARCHAR(50) NOT NULL, entity VARCHAR(30), entity_id VARCHAR(50),
+  ip VARCHAR(45), created_at TIMESTAMPTZ NOT NULL DEFAULT now());
