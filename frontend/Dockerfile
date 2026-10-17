@@ -9,7 +9,7 @@ ARG VITE_USE_MOCKS=false
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL VITE_USE_MOCKS=$VITE_USE_MOCKS
 RUN npm run build
 
-FROM nginx:1.28-alpine
+FROM nginx:1.29-alpine
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 RUN mkdir -p /etc/nginx/snippets
 COPY security-headers.conf /etc/nginx/snippets/security-headers.conf
