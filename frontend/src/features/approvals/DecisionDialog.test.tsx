@@ -16,7 +16,7 @@ const setup = (props: Partial<Parameters<typeof DecisionDialog>[0]> = {}) => {
   render(<QueryClientProvider client={new QueryClient()}><DecisionDialog approval={approval()} role="APPROVER" userId={2} open onOpenChange={onOpenChange} {...props} /></QueryClientProvider>)
   return { user: userEvent.setup(), onOpenChange }
 }
-beforeEach(() => vi.mocked(approvalApi.decide).mockReset())
+beforeEach(() => { vi.mocked(approvalApi.decide).mockReset() })
 
 describe('decision rules', () => {
   it('blocks analysts, self-approval and already-decided approvals', () => {
@@ -37,7 +37,7 @@ describe('DecisionDialog', () => {
     expect(screen.getByRole('button', { name: 'Continue' })).toBeDisabled()
     await user.type(screen.getByLabelText(/Reason/), 'Stock has recovered')
     await user.click(screen.getByRole('button', { name: 'Continue' }))
-    expect(screen.getByText(/will not be executed|not.*be executed/i)).toBeInTheDocument()
+    expect(screen.getByText(/Rejecting means/).textContent).toMatch(/will not be executed/i)
     await user.click(screen.getByRole('button', { name: 'Confirm rejection' }))
     expect(approvalApi.decide).toHaveBeenCalledWith(5, { decision: 'REJECT', comment: 'Stock has recovered' })
   })
