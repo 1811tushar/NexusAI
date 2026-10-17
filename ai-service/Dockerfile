@@ -1,5 +1,5 @@
 # NexusAI ai-service: slim, non-root, CPU-only torch, model cache on a volume, healthcheck on /health.
-FROM python:3.12-slim
+FROM python:3.14-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_PIP_VERSION_CHECK=1 \
     HF_HOME=/models SENTENCE_TRANSFORMERS_HOME=/models
