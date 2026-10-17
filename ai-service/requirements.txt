@@ -15,7 +15,7 @@ numpy>=1.26
 sentence-transformers>=3.0
 # --- loaders / chunking (AI A) ---
 pypdf>=4.2
-python-docx>=1.1
+python-docx>=1.2.0
 langchain-text-splitters>=0.2
 # --- agents / LLM (AI B; listed here so one image serves both) ---
 langgraph>=0.4             # AI B graph + interrupt()/Command; tested with 1.2.x
