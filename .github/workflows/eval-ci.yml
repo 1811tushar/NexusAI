@@ -25,23 +25,21 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
-          POSTGRES_DB: nexusai
-          POSTGRES_USER: nexus
-          POSTGRES_PASSWORD: ci-postgres-password
-        ports: ['5432:5432']
-        options: >-
-          --health-cmd "pg_isready -U nexus -d nexusai"
-          --health-interval 5s --health-timeout 3s --health-retries 20
-    env:
-      INTERNAL_API_KEY: ci-internal-key
+      # INTERNAL_API_KEY must be >= 16 chars and equal to the key hard-coded in tests/agents/test_routes.py.
+      INTERNAL_API_KEY: test-internal-key-0123456789
       AI_DB_HOST: localhost
       AI_DB_NAME: nexusai
       AI_DB_RW_USER: ai_rw
-      AI_DB_RW_PASSWORD: ci-ai-rw-password
+      # The DB test fixtures (tests/conftest.py) reset these two role passwords cluster-wide, so CI uses the same values.
+      AI_DB_RW_PASSWORD: rw_test_pw
       AI_DB_RO_USER: ai_readonly
-      AI_DB_RO_PASSWORD: ci-ai-ro-password
-      LLM_PROVIDER: fake
+      AI_DB_RO_PASSWORD: ro_test_pw
+      # Deterministic gate: no LLM call anywhere. The hashing embedder needs no download and matches the recorded baseline.
+      EMBEDDING_MODEL: hashing
+      WEB_SEARCH_ENABLED: 'false'
       EVAL_MODE: ci
+      # Superuser DSN of the service container above: without it the DB-backed safety tests would be skipped (ci_check exits 2).
+      TEST_ADMIN_DSN: postgresql://nexus:ci-postgres-password@localhost:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Detect evaluation module
@@ -131,7 +129,7 @@ jobs:
           --health-cmd "pg_isready -U nexus -d nexusai"
           --health-interval 5s --health-timeout 3s --health-retries 20
     env:
-      INTERNAL_API_KEY: ci-internal-key
+      INTERNAL_API_KEY: test-internal-key-0123456789
       AI_DB_HOST: localhost
       AI_DB_NAME: nexusai
       AI_DB_RW_USER: ai_rw
@@ -146,7 +144,7 @@ jobs:
       - name: Check prerequisites
         id: pre
         run: |
-          if [ ! -f ai-service/app/evals/run_eval.py ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "::notice::run_eval.py not present yet.";
+          if [ ! -f ai-service/app/evals/run_eval.py ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "::notice::run_eval.py not present yet."; 
           elif [ -z "$GEMINI_API_KEY" ] || [ -z "$GEMINI_MODEL" ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "::notice::Set secret GEMINI_API_KEY and repository variable GEMINI_MODEL to enable this optional run."
           else echo "run=true" >> "$GITHUB_OUTPUT"; fi
       - if: steps.pre.outputs.run == 'true'

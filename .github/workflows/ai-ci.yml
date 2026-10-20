@@ -25,17 +25,20 @@ jobs:
           --health-cmd "pg_isready -U nexus -d nexusai"
           --health-interval 5s --health-timeout 3s --health-retries 20
     env:
-      # Same variable names as the contract (section 11). LLM_PROVIDER=fake is a TEST-ONLY scripted model (never real network calls).
-      INTERNAL_API_KEY: ci-internal-key
+      # Same variable names as the contract (section 11). Real LLMs are never called here: tests inject scripted models.
+      # INTERNAL_API_KEY must be >= 16 chars and equal to the key hard-coded in tests/agents/test_routes.py.
+      INTERNAL_API_KEY: test-internal-key-0123456789
       AI_DB_HOST: localhost
       AI_DB_NAME: nexusai
       AI_DB_RW_USER: ai_rw
-      AI_DB_RW_PASSWORD: ci-ai-rw-password
+      # The DB test fixtures (tests/conftest.py) reset these two role passwords cluster-wide, so CI uses the same values.
+      AI_DB_RW_PASSWORD: rw_test_pw
       AI_DB_RO_USER: ai_readonly
-      AI_DB_RO_PASSWORD: ci-ai-ro-password
-      LLM_PROVIDER: fake
+      AI_DB_RO_PASSWORD: ro_test_pw
       GEMINI_API_KEY: ''
       WEB_SEARCH_ENABLED: 'false'
+      # Superuser DSN of the service container above: DB-backed tests run here instead of being skipped.
+      TEST_ADMIN_DSN: postgresql://nexus:ci-postgres-password@localhost:5432/postgres
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - name: Detect AI project
