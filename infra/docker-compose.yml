@@ -161,7 +161,7 @@ services:
     depends_on: [prometheus]
     networks: [internal]
   ollama:
-    image: ollama/ollama:0.12.6
+    image: ollama/ollama:0.40.6
     profiles: ["ollama"]
     restart: unless-stopped
     volumes: [ollama-data:/root/.ollama]
