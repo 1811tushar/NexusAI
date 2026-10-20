@@ -1,32 +1,52 @@
+# Dependency updates are deliberately quiet until the build is green on main:
+# monthly, minor/patch only (no major jumps), grouped into one PR per ecosystem.
 version: 2
 updates:
   - package-ecosystem: npm
     directory: /frontend
-    schedule: { interval: weekly }
-    open-pull-requests-limit: 5
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 2
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      npm-minor-patch:
+        update-types: ["minor", "patch"]
   - package-ecosystem: maven
     directory: /backend
-    schedule: { interval: weekly }
-    open-pull-requests-limit: 5
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 2
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      maven-minor-patch:
+        update-types: ["minor", "patch"]
   - package-ecosystem: pip
     directory: /ai-service
-    schedule: { interval: weekly }
-    open-pull-requests-limit: 5
+    schedule: { interval: monthly }
+    open-pull-requests-limit: 2
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      pip-minor-patch:
+        update-types: ["minor", "patch"]
   - package-ecosystem: docker
     directory: /frontend
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
   - package-ecosystem: docker
     directory: /backend
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
   - package-ecosystem: docker
     directory: /ai-service
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
   - package-ecosystem: docker
     directory: /infra/fake-ai
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
   - package-ecosystem: docker-compose
     directory: /infra
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
   - package-ecosystem: github-actions
     directory: /
-    schedule: { interval: weekly }
+    schedule: { interval: monthly }
