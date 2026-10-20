@@ -19,7 +19,7 @@ python-docx>=1.1
 langchain-text-splitters>=0.2
 # --- agents / LLM (AI B; listed here so one image serves both) ---
 langgraph>=0.4             # AI B graph + interrupt()/Command; tested with 1.2.x
-langgraph-checkpoint-postgres>=2.0   # AsyncPostgresSaver; tested with 3.x
+langgraph-checkpoint-postgres>=3.2.0   # AsyncPostgresSaver; tested with 3.x
 langchain-core>=0.3
 langchain-google-genai>=2.0
 langchain-ollama>=0.2
