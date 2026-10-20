@@ -71,6 +71,12 @@ CREATE TABLE IF NOT EXISTS ai.eval_runs (
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
+-- Ownership: the AI service runs idempotent DDL as ai_rw at startup (ensure_ai_schema). CREATE INDEX IF NOT EXISTS
+-- still requires table ownership, so ai_rw must own these tables (also repairs databases bootstrapped earlier).
+ALTER TABLE ai.document_chunks OWNER TO :"rw_user";
+ALTER TABLE ai.memories        OWNER TO :"rw_user";
+ALTER TABLE ai.eval_runs       OWNER TO :"rw_user";
+
 -- 4. Privileges for ai_rw on everything created above ---------------------------------------------
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES    IN SCHEMA ai TO :"rw_user";
 GRANT USAGE, SELECT, UPDATE          ON ALL SEQUENCES IN SCHEMA ai TO :"rw_user";
