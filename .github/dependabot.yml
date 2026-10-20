@@ -1,5 +1,5 @@
 # Dependency updates are deliberately quiet until the build is green on main:
-# monthly, minor/patch only (no major jumps), grouped into one PR per ecosystem.
+# monthly, minor/patch only (no major jumps, including base images), grouped into one PR per ecosystem.
 version: 2
 updates:
   - package-ecosystem: npm
@@ -35,18 +35,33 @@ updates:
   - package-ecosystem: docker
     directory: /frontend
     schedule: { interval: monthly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /backend
     schedule: { interval: monthly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /ai-service
     schedule: { interval: monthly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /infra/fake-ai
     schedule: { interval: monthly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: docker-compose
     directory: /infra
     schedule: { interval: monthly }
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
