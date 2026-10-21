@@ -1,0 +1,11 @@
+title = "NexusAI gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Dummy credentials used only by tests, CI and documentation examples (no real secrets)"
+regexes = [
+  '''test-internal-key-0123456789''',
+  '''ci-internal-key-0123456789''',
+]
