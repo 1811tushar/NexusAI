@@ -114,6 +114,9 @@ jobs:
       - name: Scan images with Trivy (HIGH/CRITICAL with an available fix fail the job)
         if: steps.d.outputs.present == 'true'
         run: |
+          # Scan all images before failing, so a single run shows every finding.
+          status=0
           for image in nexusai-frontend:ci nexusai-backend:ci nexusai-ai-service:ci; do
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.cache/trivy:/root/.cache/" aquasec/trivy:0.67.2 image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL "$image"
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.cache/trivy:/root/.cache/" aquasec/trivy:0.67.2 image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL "$image" || status=1
           done
+          exit $status
