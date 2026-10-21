@@ -44,8 +44,8 @@ export function AppShell() {
         <header className="flex items-center justify-end gap-3 border-b border-line bg-surface px-4 py-2">
           <Badge tone="accent">{roleLabel[user.role]}</Badge>
           <DropdownMenu>
-            <DropdownMenuTrigger aria-label="Open user menu" className="flex items-center gap-2 rounded-md p-1 hover:bg-accent-soft">
-              <Avatar name={user.displayName} /><span className="hidden text-sm sm:inline">{user.displayName}</span>
+            <DropdownMenuTrigger className="flex items-center gap-2 rounded-md p-1 hover:bg-accent-soft">
+              <Avatar name={user.displayName} /><span className="sr-only">Open user menu: </span><span className="hidden text-sm sm:inline">{user.displayName}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuLabel>{user.email}</DropdownMenuLabel>
