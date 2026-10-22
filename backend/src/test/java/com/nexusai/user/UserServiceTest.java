@@ -62,7 +62,8 @@ class UserServiceTest {
 
     @Test void demotingOneOfTwoAdminsIsAllowed() {
         User target = user(2, Role.ADMIN);
-        when(users.lockEnabledAdmins()).thenReturn(List.of(target, user(3, Role.ADMIN)));
+        User other = user(3, Role.ADMIN);   // create (and stub) first: Mockito forbids stubbing inside thenReturn(...) arguments
+        when(users.lockEnabledAdmins()).thenReturn(List.of(target, other));
         assertThat(service.patch(2, new PatchUserRequestDTO(Role.APPROVER, null), 1).role()).isEqualTo(Role.APPROVER);
     }
 
