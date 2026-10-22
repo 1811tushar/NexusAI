@@ -8,7 +8,8 @@ WORKDIR /app
 # 1) CPU-only torch FIRST (the default PyPI wheel pulls ~2 GB of CUDA libraries). sentence-transformers then sees torch as satisfied.
 RUN pip install --index-url https://download.pytorch.org/whl/cpu torch
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+# Latest setuptools: the base image ships 78.1.0 whose vendored jaraco.context/wheel carry HIGH CVEs (Trivy gate).
+RUN pip install -r requirements.txt && pip install --upgrade setuptools
 
 RUN useradd --create-home --uid 10001 app && mkdir -p /models && chown -R app:app /models /app
 COPY --chown=app:app app ./app
