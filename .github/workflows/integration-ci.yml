@@ -35,7 +35,13 @@ jobs:
         run: bash infra/scripts/smoke-test.sh --fake-ai
       - name: Dump logs on failure
         if: failure()
-        run: docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env logs --no-color
+        run: |
+          C="docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env"
+          echo "===== container status ====="; $C ps -a || true
+          echo "===== backend: last 200 log lines ====="; $C logs --no-color --tail 200 backend || true
+          echo "===== backend: health probe results ====="
+          docker inspect --format '{{json .State.Health}}' "$($C ps -aq backend)" || true
+          echo "===== all services ====="; $C logs --no-color
       - name: Stop and remove ephemeral volumes
         if: always() && steps.detect.outputs.present == 'true'
         run: docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env down -v --remove-orphans
