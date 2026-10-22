@@ -8,6 +8,8 @@ cleanup() { docker rm -f "$BACK" "$PROXY" >/dev/null 2>&1 || true; docker networ
 trap cleanup EXIT
 mkdir -p "$WEB/assets"
 echo '<html><head><title>NexusAI</title></head><body>app</body></html>' > "$WEB/index.html"; echo 'x' > "$WEB/assets/index-AbCdEf12.js"; echo '<svg/>' > "$WEB/favicon.svg"
+# mktemp -d creates a 0700 dir; the nginx worker (uid 101) inside the container must be able to read it (GitHub runners are Linux, no Docker Desktop mapping)
+chmod -R a+rX "$WEB"
 docker network create "$NET" >/dev/null
 docker run -d --name "$BACK" --network "$NET" --network-alias backend -e FAKE_BACKEND_HOST=0.0.0.0 \
   -v "$PWD/infra/tests/nginx/fake_backend.py:/srv/fake_backend.py:ro" python:3.12-slim python /srv/fake_backend.py >/dev/null
