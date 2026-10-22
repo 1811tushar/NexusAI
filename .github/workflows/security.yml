@@ -114,9 +114,15 @@ jobs:
       - name: Scan images with Trivy (HIGH/CRITICAL with an available fix fail the job)
         if: steps.d.outputs.present == 'true'
         run: |
-          # Scan all images before failing, so a single run shows every finding.
+          # Scan every image, print only the findings (one compact line each) and fail at the end if any exist.
+          mkdir -p trivy-out
           status=0
           for image in nexusai-frontend:ci nexusai-backend:ci nexusai-ai-service:ci; do
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.cache/trivy:/root/.cache/" aquasec/trivy:0.67.2 image --exit-code 1 --ignore-unfixed --severity HIGH,CRITICAL "$image" || status=1
+            name="${image%%:*}"
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.cache/trivy:/root/.cache/" -v "$PWD/trivy-out:/out" aquasec/trivy:0.67.2 image --quiet --ignore-unfixed --severity HIGH,CRITICAL --format json --output "/out/$name.json" "$image"
+            count=$(jq '[.Results[]? | ((.Vulnerabilities // []) + (.Secrets // []))[]] | length' "trivy-out/$name.json")
+            echo "===== $image: $count HIGH/CRITICAL fixable finding(s) ====="
+            jq -r '.Results[]? | .Target as $t | ((.Vulnerabilities // [])[] | "\($t) | \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion) | \(.Severity) | \(.VulnerabilityID) | \(.Title // "")"), ((.Secrets // [])[] | "\($t) | SECRET | \(.RuleID)")' "trivy-out/$name.json"
+            if [ "$count" -gt 0 ]; then status=1; fi
           done
           exit $status
