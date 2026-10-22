@@ -122,7 +122,8 @@ class DocumentServiceTest {
     }
 
     @Test void failedPersistenceRemovesTheStoredFile() {
-        when(repo.saveAndFlush(any())).thenThrow(new IllegalStateException("db down"));
+        // doThrow().when() does not invoke the setUp() answer (which would NPE on the null matcher argument)
+        doThrow(new IllegalStateException("db down")).when(repo).saveAndFlush(any());
         assertThatThrownBy(() -> service.upload(pdf(), ANALYST)).isInstanceOf(IllegalStateException.class);
         verify(storage).delete("ab/" + "c".repeat(32));
     }
