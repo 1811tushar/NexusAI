@@ -10,6 +10,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /** Keys look like "ab/ab12...(32 hex)": random, never derived from user input, and re-validated on every access (no path traversal). */
@@ -18,6 +19,7 @@ public class LocalFileStorage implements FileStorage {
     private static final Pattern KEY = Pattern.compile("^[0-9a-f]{2}/[0-9a-f]{32}$");
     private final Path root;
 
+    @Autowired // two constructors exist (this one for Spring, the Path one for tests): Spring needs to be told which to use
     public LocalFileStorage(NexusProperties props) {
         this(Path.of(props.upload().dir()));
     }
