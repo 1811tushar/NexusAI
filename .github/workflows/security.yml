@@ -123,6 +123,13 @@ jobs:
             count=$(jq '[.Results[]? | ((.Vulnerabilities // []) + (.Secrets // []))[]] | length' "trivy-out/$name.json")
             echo "===== $image: $count HIGH/CRITICAL fixable finding(s) ====="
             jq -r '.Results[]? | .Target as $t | ((.Vulnerabilities // [])[] | "\($t) | \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion) | \(.Severity) | \(.VulnerabilityID) | \(.Title // "")"), ((.Secrets // [])[] | "\($t) | SECRET | \(.RuleID)")' "trivy-out/$name.json"
+            {
+              echo "### $image: $count HIGH/CRITICAL fixable finding(s)"
+              echo "| Package | Installed | Fixed in | Severity | CVE |"
+              echo "|---|---|---|---|---|"
+              jq -r '.Results[]? | (.Vulnerabilities // [])[] | "| \(.PkgName) | \(.InstalledVersion) | \(.FixedVersion) | \(.Severity) | \(.VulnerabilityID) |"' "trivy-out/$name.json" | sort -u
+              echo
+            } >> "$GITHUB_STEP_SUMMARY"
             if [ "$count" -gt 0 ]; then status=1; fi
           done
           exit $status

@@ -29,4 +29,13 @@ jobs:
       - if: steps.detect.outputs.present == 'true'
         name: Build and test (Testcontainers needs the runner's Docker)
         working-directory: backend
-        run: mvn -B verify
+        run: mvn -B verify -DtrimStackTrace=false
+      - if: failure() && steps.detect.outputs.present == 'true'
+        name: Root cause digest (read this first)
+        working-directory: backend
+        run: |
+          echo "===== most frequent root-cause lines across all failing tests ====="
+          grep -rhE "^Caused by: |APPLICATION FAILED|Schema-validation|BeanCreationException|UnsatisfiedDependency|Error creating bean|BindException|Failed to bind" target/failsafe-reports target/surefire-reports 2>/dev/null | sed 's/^[[:space:]]*//' | cut -c1-300 | sort | uniq -c | sort -rn | head -15 || true
+          echo "===== first error in full ====="
+          f=$(grep -rlE "<error" target/failsafe-reports target/surefire-reports --include='TEST-*.xml' 2>/dev/null | head -1)
+          if [ -n "$f" ]; then echo "report: $f"; sed -n '/<error/,/<\/error>/p' "$f" | cut -c1-300 | head -70; fi

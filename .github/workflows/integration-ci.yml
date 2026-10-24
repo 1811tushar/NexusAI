@@ -29,7 +29,15 @@ jobs:
           sed -i 's/^ADMIN_PASSWORD=.*/ADMIN_PASSWORD=TestAdmin-Password-12345/' infra/.env
       - name: Start services and wait for health
         if: steps.detect.outputs.present == 'true'
-        run: docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env up --build --wait --wait-timeout 600
+        run: |
+          C="docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env"
+          if ! $C up --build --wait --wait-timeout 600; then
+            echo "===== container status ====="; $C ps -a || true
+            echo "===== backend: last 150 log lines ====="; $C logs --no-color --tail 150 backend || true
+            echo "===== backend: health probe results ====="
+            docker inspect --format '{{json .State.Health}}' "$($C ps -aq backend)" || true
+            exit 1
+          fi
       - name: Smoke test (fake AI mode)
         if: steps.detect.outputs.present == 'true'
         run: bash infra/scripts/smoke-test.sh --fake-ai
