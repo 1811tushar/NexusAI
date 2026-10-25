@@ -10,10 +10,10 @@ export function ComparisonChart({ data }: { data: { system: string; correctness:
 }
 export function TradeoffChart({ data }: { data: { system: string; tokens: number; correctness: number }[] }) {
   return (
-    <div className="h-72" role="img" aria-label="Scatter chart of average tokens against answer correctness per system. The table above has the same numbers."><ResponsiveContainer>
+    <div className="h-72" role="img" aria-label="Scatter chart of average tokens against answer correctness per system. The table above has the same numbers."><div className="h-full" aria-hidden="true"><ResponsiveContainer>
       <ScatterChart><CartesianGrid stroke="var(--border)" strokeDasharray="3 3" /><XAxis type="number" dataKey="tokens" name="Average tokens" stroke="var(--text-muted)" /><YAxis type="number" dataKey="correctness" name="Correctness" tickFormatter={pct} domain={[0, 1]} stroke="var(--text-muted)" /><ZAxis range={[120, 120]} />
         <Tooltip cursor={{ strokeDasharray: '3 3' }} formatter={(v: number, n: string) => (n === 'Correctness' ? pct(v) : v)} /><Legend />
-        {data.map((d, i) => <Scatter key={d.system} name={d.system} data={[d]} fill={['var(--text-muted)', 'var(--warning)', 'var(--info)', 'var(--accent)'][i % 4]} />)}</ScatterChart></ResponsiveContainer></div>
+        {data.map((d, i) => <Scatter key={d.system} name={d.system} data={[d]} fill={['var(--text-muted)', 'var(--warning)', 'var(--info)', 'var(--accent)'][i % 4]} />)}</ScatterChart></ResponsiveContainer></div></div>
   )
 }
 export function AblationChart({ data }: { data: { variant: string; hit: number }[] }) {
