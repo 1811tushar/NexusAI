@@ -6,6 +6,7 @@ import com.nexusai.common.security.JwtAuthFilter;
 import com.nexusai.common.security.JwtUtil;
 import com.nexusai.common.security.RateLimitFilter;
 import jakarta.servlet.DispatcherType;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -36,7 +37,7 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, JwtUtil jwtUtil, JsonErrorWriter writer, NexusProperties props,
-                                                   CorsConfigurationSource cors) throws Exception {
+                                                   @Qualifier("corsConfigurationSource") CorsConfigurationSource cors) throws Exception {
         JwtAuthFilter jwtFilter = new JwtAuthFilter(jwtUtil);
         RateLimitFilter rateLimitFilter = new RateLimitFilter(props.rateLimit(), writer);
 
