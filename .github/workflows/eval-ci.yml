@@ -25,6 +25,14 @@ jobs:
       postgres:
         image: pgvector/pgvector:pg16
         env:
+          POSTGRES_DB: nexusai
+          POSTGRES_USER: nexus
+          POSTGRES_PASSWORD: ci-postgres-password
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U nexus -d nexusai"
+          --health-interval 5s --health-timeout 3s --health-retries 20
+    env:
       # INTERNAL_API_KEY must be >= 16 chars and equal to the key hard-coded in tests/agents/test_routes.py.
       INTERNAL_API_KEY: test-internal-key-0123456789
       AI_DB_HOST: localhost
