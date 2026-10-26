@@ -94,8 +94,21 @@ class Handler(BaseHTTPRequestHandler):
     def send_json(self, status, payload):
         b = jb(payload); self.send_response(status); self.send_header("Content-Type", "application/json"); self.send_header("Content-Length", str(len(b))); self.end_headers(); self.wfile.write(b)
     def authorized(self): return bool(API_KEY) and self.headers.get("X-Internal-API-Key", "") == API_KEY
+    def read_raw(self):
+        # WebClient/Netty sends multipart uploads with Transfer-Encoding: chunked (no Content-Length): support both.
+        if "chunked" in self.headers.get("Transfer-Encoding", "").lower():
+            parts = []
+            while True:
+                size = int((self.rfile.readline().split(b";")[0].strip() or b"0"), 16)
+                if size == 0:
+                    while self.rfile.readline() not in (b"\r\n", b"\n", b""): pass   # optional trailers
+                    break
+                parts.append(self.rfile.read(size)); self.rfile.readline()
+            return b"".join(parts)
+        n = int(self.headers.get("Content-Length", "0"))
+        return self.rfile.read(n) if n else b""
     def read_json(self):
-        n = int(self.headers.get("Content-Length", "0")); raw = self.rfile.read(n) if n else b"{}"
+        raw = self.read_raw() or b"{}"
         try: v = json.loads(raw or b"{}")
         except ValueError: v = {}
         return v if isinstance(v, dict) else {}
@@ -132,7 +145,7 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         if not self.authorized(): return self.send_json(401, {"detail": "invalid internal API key"})
         if path == "/internal/ingest":
-            n = int(self.headers.get("Content-Length", "0")); raw = self.rfile.read(n); ctype = self.headers.get("Content-Type", "application/octet-stream")
+            raw = self.read_raw(); ctype = self.headers.get("Content-Type", "application/octet-stream")
             msg = BytesParser(policy=default).parsebytes(b"MIME-Version: 1.0\r\nContent-Type: " + ctype.encode() + b"\r\n\r\n" + raw)
             meta, content = {}, ""
             if msg.is_multipart():
