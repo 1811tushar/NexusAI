@@ -179,7 +179,7 @@ class DocumentIngestionIT extends IntegrationTestBase {
                 + "{\"chunkId\":8,\"documentId\":424242,\"page\":1,\"section\":null,\"snippet\":\"orphan\",\"score\":0.5}]");
         web.get().uri("/api/search?q=price&mode=hybrid&k=5").header("Authorization", bearer(s)).exchange().expectStatus().isOk()
                 .expectBody().jsonPath("$.data.length()").isEqualTo(1).jsonPath("$.data[0].documentTitle").isEqualTo("report");
-        web.get().uri("/api/search?q=%20").header("Authorization", bearer(s)).exchange().expectStatus().isBadRequest();
+        web.get().uri("/api/search?q={q}", " ").header("Authorization", bearer(s)).exchange().expectStatus().isBadRequest();
     }
 
     @Test
