@@ -68,7 +68,7 @@ public abstract class IntegrationTestBase {
 
     @BeforeEach
     void resetState() {
-        jdbc.execute("TRUNCATE TABLE users RESTART IDENTITY CASCADE");   // cascades to every table that references users
+        jdbc.execute("TRUNCATE TABLE users, audit_log RESTART IDENTITY CASCADE");   // CASCADE clears every table that references users; audit_log has no foreign key to users, so it is listed explicitly
         AI.resetAll();
     }
 
