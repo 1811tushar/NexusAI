@@ -95,24 +95,25 @@ echo "== 4. Investigation, SSE through nginx, replay"
 HERO='Why did Q2 revenue decline compared to Q1, and what should management investigate?'
 http POST /api/investigations "$admin_token" "$(jq -nc --arg q "$HERO" '{question:$q,options:{webSearch:false,useMemory:true,maxLoops:2}}')"; expect "200|201|202" "admin starts the hero investigation"
 inv_id="$(jq -r '.data.id // empty' <<<"$BODY")"; [[ -n "$inv_id" ]] || fail "start response has no data.id"
+# SSE field syntax allows an optional space after the colon; Spring's SseEmitter writes "event:name" and "id:1" without it.
 capture_stream "$admin_token" "$inv_id" "$tmp/stream1.txt" "${SMOKE_STREAM_SECONDS:-14}"
-grep -q $'\tevent: run_started' "$tmp/stream1.txt" && ok "SSE: run_started received through nginx" || fail "SSE: no run_started event within ${SMOKE_STREAM_SECONDS:-14} s"
+grep -Eq $'\tevent: ?run_started$' "$tmp/stream1.txt" && ok "SSE: run_started received through nginx" || fail "SSE: no run_started event within ${SMOKE_STREAM_SECONDS:-14} s"
 if $FAKE_AI; then
   for e in plan tool_call evidence_added claim_verified loop action_proposed action_executed approval_required guardrail_triggered; do
-    grep -q $'\tevent: '"$e"'$' "$tmp/stream1.txt" && ok "SSE: $e event relayed" || fail "SSE: missing $e event (relay not forwarding or persisting it)"; done
-  t_first="$(awk -F'\t' '/\tevent: run_started/{print $1; exit}' "$tmp/stream1.txt")"; t_last="$(awk -F'\t' '/\tevent: approval_required/{print $1; exit}' "$tmp/stream1.txt")"
+    grep -Eq $'\tevent: ?'"$e"'$' "$tmp/stream1.txt" && ok "SSE: $e event relayed" || fail "SSE: missing $e event (relay not forwarding or persisting it)"; done
+  t_first="$(awk -F'\t' '/\tevent: ?run_started/{print $1; exit}' "$tmp/stream1.txt")"; t_last="$(awk -F'\t' '/\tevent: ?approval_required/{print $1; exit}' "$tmp/stream1.txt")"
   spread="$(awk -v a="$t_first" -v b="$t_last" 'BEGIN{printf "%.2f", b-a}')"
   awk -v s="$spread" 'BEGIN{exit !(s>=1.0)}' && ok "SSE: events arrive progressively (spread ${spread}s), proxy buffering is off" || echo "WARN  events arrived in one burst (${spread}s): check proxy_buffering / EPOCHREALTIME support"
 fi
-ids="$(awk -F'\t' '$2 ~ /^id: /{sub(/^id: /,"",$2); print $2}' "$tmp/stream1.txt")"
+ids="$(awk -F'\t' '$2 ~ /^id: ?/{sub(/^id: ?/,"",$2); print $2}' "$tmp/stream1.txt")"
 [[ -n "$ids" ]] || fail "SSE frames carry no id: lines (sequence numbers are required for replay)"
 prev=0; for i in $ids; do [[ "$i" -gt "$prev" ]] || fail "SSE ids are not strictly increasing ($prev then $i)"; prev="$i"; done
 ok "SSE ids are strictly increasing (last=$prev)"
 capture_stream "$admin_token" "$inv_id" "$tmp/stream2.txt" "${SMOKE_REPLAY_SECONDS:-6}" "$prev"
-dups="$(awk -F'\t' '$2 ~ /^id: /{sub(/^id: /,"",$2); if ($2+0 <= '"$prev"') c++} END{print c+0}' "$tmp/stream2.txt")"
+dups="$(awk -F'\t' '$2 ~ /^id: ?/{sub(/^id: ?/,"",$2); if ($2+0 <= '"$prev"') c++} END{print c+0}' "$tmp/stream2.txt")"
 [[ "$dups" -eq 0 ]] && ok "SSE replay with Last-Event-ID returns no duplicate events" || fail "SSE replay re-sent $dups events with id <= $prev"
 capture_stream "$admin_token" "$inv_id" "$tmp/stream3.txt" "${SMOKE_REPLAY_SECONDS:-6}" 0
-grep -q $'\tevent: run_started' "$tmp/stream3.txt" && ok "SSE replay from the beginning (late joiner) works" || fail "late joiner did not receive the history"
+grep -Eq $'\tevent: ?run_started$' "$tmp/stream3.txt" && ok "SSE replay from the beginning (late joiner) works" || fail "late joiner did not receive the history"
 http GET "/api/investigations/$inv_id" "$analyst2_token"; expect "404" "another analyst gets 404 for this investigation"
 
 echo "== 5. Approval gate"
