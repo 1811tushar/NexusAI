@@ -40,7 +40,13 @@ jobs:
           fi
       - name: Smoke test (fake AI mode)
         if: steps.detect.outputs.present == 'true'
-        run: bash infra/scripts/smoke-test.sh --fake-ai
+        run: |
+          if ! bash infra/scripts/smoke-test.sh --fake-ai; then
+            C="docker compose -f infra/docker-compose.yml -f infra/docker-compose.fake-ai.yml --env-file infra/.env"
+            echo "===== backend: last 120 log lines ====="; $C logs --no-color --tail 120 backend || true
+            echo "===== ai-service (fake AI): last 40 log lines ====="; $C logs --no-color --tail 40 ai-service || true
+            exit 1
+          fi
       - name: Dump logs on failure
         if: failure()
         run: |
