@@ -88,8 +88,10 @@ class AuthFlowIT extends IntegrationTestBase {
 
         // replaying the OLD token = theft signal: it fails AND kills the new token of the same family
         refresh(s.refreshCookie()).expectStatus().isUnauthorized();
-        refresh(rotated).expectStatus().isUnauthorized();
+        // the theft signal itself is audited exactly once ...
         assertThat(jdbc.queryForObject("select count(*) from audit_log where action = 'REFRESH_REUSE_DETECTED'", Integer.class)).isEqualTo(1);
+        // ... and the rotated token of the same family is dead too (using it is another rejected attempt, which is audited again)
+        refresh(rotated).expectStatus().isUnauthorized();
     }
 
     @Test
