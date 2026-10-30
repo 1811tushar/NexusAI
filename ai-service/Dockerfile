@@ -9,7 +9,8 @@ WORKDIR /app
 RUN pip install --index-url https://download.pytorch.org/whl/cpu torch
 COPY requirements.txt .
 # Latest setuptools: the base image ships 78.1.0 whose vendored jaraco.context/wheel carry HIGH CVEs (Trivy gate).
-RUN pip install -r requirements.txt && pip install --upgrade setuptools
+# filelock >= 4.2.1 fixes CVE-2026-112940 (pulled in transitively by torch / huggingface_hub; API unchanged for FileLock/SoftFileLock).
+RUN pip install -r requirements.txt && pip install --upgrade setuptools "filelock>=4.2.1"
 
 RUN useradd --create-home --uid 10001 app && mkdir -p /models && chown -R app:app /models /app
 COPY --chown=app:app app ./app
