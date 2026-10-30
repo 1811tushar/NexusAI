@@ -16,7 +16,7 @@ docker run -d --name "$BACK" --network "$NET" --network-alias backend -e FAKE_BA
 docker run -d --name "$PROXY" --network "$NET" \
   -v "$PWD/frontend/nginx.conf:/etc/nginx/conf.d/default.conf:ro" \
   -v "$PWD/frontend/security-headers.conf:/etc/nginx/snippets/security-headers.conf:ro" \
-  -v "$WEB:/usr/share/nginx/html:ro" nginx:1.28-alpine >/dev/null
+  -v "$WEB:/usr/share/nginx/html:ro" nginx:1.30-alpine >/dev/null
 sleep 3
 docker exec "$PROXY" nginx -t
 docker run --rm --network "$NET" -e NGINX_HOST="$PROXY" -e NGINX_PORT=80 -v "$PWD/infra/tests/nginx/run_tests.py:/t/run_tests.py:ro" python:3.12-slim python /t/run_tests.py

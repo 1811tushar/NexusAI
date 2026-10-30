@@ -9,7 +9,7 @@ ARG VITE_USE_MOCKS=false
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL VITE_USE_MOCKS=$VITE_USE_MOCKS
 RUN npm run build
 
-FROM nginx:1.28-alpine
+FROM nginx:1.30-alpine
 # Pull patched Alpine packages (Trivy gate: HIGH/CRITICAL with a fix must not ship).
 RUN apk upgrade --no-cache
 COPY nginx.conf /etc/nginx/conf.d/default.conf
