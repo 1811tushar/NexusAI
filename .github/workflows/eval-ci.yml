@@ -68,7 +68,7 @@ jobs:
               print('::warning::evals/baseline_metrics.json is not MEASURED yet: regression comparison is skipped; safety checks still gate. Run the evaluation locally and commit the measured baseline.')
           PY
       - if: steps.detect.outputs.present == 'true'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.12'
           cache: pip
@@ -156,7 +156,7 @@ jobs:
           elif [ -z "$GEMINI_API_KEY" ] || [ -z "$GEMINI_MODEL" ]; then echo "run=false" >> "$GITHUB_OUTPUT"; echo "::notice::Set secret GEMINI_API_KEY and repository variable GEMINI_MODEL to enable this optional run."
           else echo "run=true" >> "$GITHUB_OUTPUT"; fi
       - if: steps.pre.outputs.run == 'true'
-        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
+        uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: '3.12'
           cache: pip
