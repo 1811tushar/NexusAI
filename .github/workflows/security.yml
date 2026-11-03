@@ -119,7 +119,7 @@ jobs:
           status=0
           for image in nexusai-frontend:ci nexusai-backend:ci nexusai-ai-service:ci; do
             name="${image%%:*}"
-            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.cache/trivy:/root/.cache/" -v "$PWD/trivy-out:/out" aquasec/trivy:0.67.2 image --quiet --ignore-unfixed --severity HIGH,CRITICAL --format json --output "/out/$name.json" "$image"
+            docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v "$HOME/.cache/trivy:/root/.cache/" -v "$PWD/trivy-out:/out" -v "$PWD/.trivyignore:/trivyignore:ro" aquasec/trivy:0.67.2 image --quiet --ignorefile /trivyignore --ignore-unfixed --severity HIGH,CRITICAL --format json --output "/out/$name.json" "$image"
             count=$(jq '[.Results[]? | ((.Vulnerabilities // []) + (.Secrets // []))[]] | length' "trivy-out/$name.json")
             echo "===== $image: $count HIGH/CRITICAL fixable finding(s) ====="
             jq -r '.Results[]? | .Target as $t | ((.Vulnerabilities // [])[] | "\($t) | \(.PkgName) \(.InstalledVersion) -> \(.FixedVersion) | \(.Severity) | \(.VulnerabilityID) | \(.Title // "")"), ((.Secrets // [])[] | "\($t) | SECRET | \(.RuleID)")' "trivy-out/$name.json"

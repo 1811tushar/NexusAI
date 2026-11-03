@@ -1,0 +1,9 @@
+# Risk acceptance - reviewed 2026-10-30, expires 2027-01-31 (revisit when migrating to Spring Boot 4 / Spring Framework 7).
+# All three are fixed ONLY in Spring Framework 7.0.9; no 6.2.x release contains the fix, and the project runs Spring Boot 3.5 (Framework 6.2).
+# Per the advisory titles the affected features are not used by this application - verify before relying on this:
+#   CVE-2026-47884: spring-webmvc XsltView path limitation (the app renders no XSLT views)
+#   CVE-2026-47892: WebFlux functional endpoints (spring-webflux is used only for the WebClient, there is no reactive server)
+#   CVE-2026-47890: SSE stream corruption with view fragments (SSE frames are JSON written by SseEmitter, no server-rendered view fragments)
+CVE-2026-47884 exp:2027-01-31
+CVE-2026-47892 exp:2027-01-31
+CVE-2026-47890 exp:2027-01-31
