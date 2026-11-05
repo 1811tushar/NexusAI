@@ -25,9 +25,11 @@
     <logstash-encoder.version>8.1</logstash-encoder.version>
     <wiremock.version>3.9.2</wiremock.version>
     <!-- Security overrides (Trivy gate): the Boot 3.5 BOM ships older lines than the fixed versions below.
-         Remove an override once the BOM manages an equal or newer version. -->
+         Remove an override once the BOM manages an equal or newer version.
+         Tomcat: the fix for CVE-2026-65182 / 65905 / 68525 is 10.1.58, which was NOT on Maven Central on 2026-11-03
+         (the build failed with "Could not find artifact tomcat-embed-core:10.1.58"). Add <tomcat.version>10.1.58</tomcat.version>
+         here only after checking that it resolves; until then those three CVEs are listed in .trivyignore with a short expiry. -->
     <jackson-bom.version>2.21.4</jackson-bom.version>
-    <tomcat.version>10.1.58</tomcat.version>
     <postgresql.version>42.7.12</postgresql.version>
   </properties>
 
