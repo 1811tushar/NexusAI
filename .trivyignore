@@ -1,5 +1,6 @@
-# Risk acceptance - reviewed 2026-10-30, expires 2027-01-31 (revisit when migrating to Spring Boot 4 / Spring Framework 7).
-# All three are fixed ONLY in Spring Framework 7.0.9; no 6.2.x release contains the fix, and the project runs Spring Boot 3.5 (Framework 6.2).
+# Risk acceptance - reviewed 2026-11-03.
+# Group 1 (expires 2027-01-31): fixed ONLY in Spring Framework 7.0.9; no 6.2.x release contains the fix, and the project runs
+# Spring Boot 3.5 (Framework 6.2). Revisit when migrating to Spring Boot 4 / Spring Framework 7.
 # Per the advisory titles the affected features are not used by this application - verify before relying on this:
 #   CVE-2026-47884: spring-webmvc XsltView path limitation (the app renders no XSLT views)
 #   CVE-2026-47892: WebFlux functional endpoints (spring-webflux is used only for the WebClient, there is no reactive server)
@@ -7,3 +8,11 @@
 CVE-2026-47884 exp:2027-01-31
 CVE-2026-47892 exp:2027-01-31
 CVE-2026-47890 exp:2027-01-31
+#
+# Group 2 (expires 2026-12-15, deliberately short): fixed only in Tomcat 10.1.58 / 11.0.25 / 9.0.121; 10.1.58 is not on Maven Central yet.
+# Per the advisory titles they concern Tomcat's own container-managed security (security constraints, DIGEST and FORM authenticators);
+# this application authenticates with JWT through Spring Security and defines no Tomcat realm or security constraints - verify before relying on this.
+# Action: as soon as 10.1.58 resolves on Maven Central, add <tomcat.version>10.1.58</tomcat.version> to backend/pom.xml and delete these lines.
+CVE-2026-65182 exp:2026-12-15
+CVE-2026-65905 exp:2026-12-15
+CVE-2026-68525 exp:2026-12-15
