@@ -9,10 +9,11 @@ CVE-2026-47884 exp:2027-01-31
 CVE-2026-47892 exp:2027-01-31
 CVE-2026-47890 exp:2027-01-31
 #
-# Group 2 (expires 2026-12-15, deliberately short): fixed only in Tomcat 10.1.58 / 11.0.25 / 9.0.121; 10.1.58 is not on Maven Central yet.
-# Per the advisory titles they concern Tomcat's own container-managed security (security constraints, DIGEST and FORM authenticators);
+# Group 2 (expires 2026-12-15, deliberately short): fixed only in Tomcat 10.1.58 (CVE-2026-65182/65905/68525) or 10.1.59 (CVE-2026-65637); neither is on Maven Central yet.
+# Per the advisory titles they concern Tomcat's own container-managed security (security constraints, DIGEST and FORM authenticators, strict SNI validation);
 # this application authenticates with JWT through Spring Security and defines no Tomcat realm or security constraints - verify before relying on this.
-# Action: as soon as 10.1.58 resolves on Maven Central, add <tomcat.version>10.1.58</tomcat.version> to backend/pom.xml and delete these lines.
+# Action: as soon as 10.1.59 (or 10.1.58) resolves on Maven Central, raise <tomcat.version> in backend/pom.xml and delete the lines it fixes.
 CVE-2026-65182 exp:2026-12-15
 CVE-2026-65905 exp:2026-12-15
 CVE-2026-68525 exp:2026-12-15
+CVE-2026-65637 exp:2026-12-15

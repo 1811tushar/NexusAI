@@ -24,12 +24,15 @@
     <bucket4j.version>8.14.0</bucket4j.version>
     <logstash-encoder.version>8.1</logstash-encoder.version>
     <wiremock.version>3.9.2</wiremock.version>
-    <!-- Security overrides (Trivy gate): the Boot 3.5 BOM ships older lines than the fixed versions below.
+    <!-- Security overrides (Trivy gate): the Boot 3.5.16 BOM ships older lines than the fixed versions below.
          Remove an override once the BOM manages an equal or newer version.
-         Tomcat: the fix for CVE-2026-65182 / 65905 / 68525 is 10.1.58, which was NOT on Maven Central on 2026-11-03
-         (the build failed with "Could not find artifact tomcat-embed-core:10.1.58"). Add <tomcat.version>10.1.58</tomcat.version>
-         here only after checking that it resolves; until then those three CVEs are listed in .trivyignore with a short expiry. -->
-    <jackson-bom.version>2.21.4</jackson-bom.version>
+         Every version here was checked to exist on Maven Central before pinning - do that again for any new pin, a missing
+         artifact breaks the whole build (10.1.58 did: "Could not find artifact tomcat-embed-core:10.1.58").
+         Tomcat: 10.1.56 fixes CVE-2026-55276 / 53404. CVE-2026-65182 / 65905 / 68525 need 10.1.58 and CVE-2026-65637 needs 10.1.59,
+         neither was on Maven Central on 2026-11-05, so those four are listed in .trivyignore with a short expiry. -->
+    <jackson-bom.version>2.21.7</jackson-bom.version>
+    <netty.version>4.1.137.Final</netty.version>
+    <tomcat.version>10.1.56</tomcat.version>
     <postgresql.version>42.7.12</postgresql.version>
   </properties>
 
