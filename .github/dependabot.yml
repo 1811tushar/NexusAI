@@ -48,20 +48,27 @@ updates:
     directory: /ai-service
     schedule: { interval: monthly }
     ignore:
+      # keep the python base image on the line the dependencies are tested with; move it on purpose, not through a bot PR
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: docker
     directory: /infra/fake-ai
     schedule: { interval: monthly }
     ignore:
+      # keep the python base image on the line the dependencies are tested with; move it on purpose, not through a bot PR
+      - dependency-name: "python"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
   - package-ecosystem: docker-compose
     directory: /infra
     schedule: { interval: monthly }
     ignore:
+      # postgres/pgvector, prometheus, grafana and ollama are infrastructure: patch updates only, bigger jumps are deliberate
       - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
   - package-ecosystem: github-actions
     directory: /
     schedule: { interval: monthly }
