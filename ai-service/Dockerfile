@@ -5,6 +5,9 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PIP_DISABLE_
     HF_HOME=/models SENTENCE_TRANSFORMERS_HOME=/models
 WORKDIR /app
 
+# Patched OS packages from the Debian security repo (Trivy gate: apt / libapt-pkg7.0 3.0.3 -> 3.0.4).
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && rm -rf /var/lib/apt/lists/*
+
 # 1) CPU-only torch FIRST (the default PyPI wheel pulls ~2 GB of CUDA libraries). sentence-transformers then sees torch as satisfied.
 RUN pip install --index-url https://download.pytorch.org/whl/cpu torch
 COPY requirements.txt .
