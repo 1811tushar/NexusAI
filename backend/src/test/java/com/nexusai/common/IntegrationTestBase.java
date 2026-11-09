@@ -68,7 +68,7 @@ public abstract class IntegrationTestBase {
 
     @BeforeEach
     void resetState() {
-        jdbc.execute("TRUNCATE TABLE users, audit_log RESTART IDENTITY CASCADE");   // CASCADE clears every table that references users; audit_log has no foreign key to users, so it is listed explicitly
+        jdbc.execute("TRUNCATE TABLE users, audit_log CASCADE");   // CASCADE clears every table that references users; audit_log has no foreign key to users, so it is listed explicitly. No RESTART IDENTITY: ids must never repeat across tests, otherwise a late async ingestion task of an earlier test can update the NEW test\'s row with the same id (flaky DocumentIngestionIT.aiRejection...)
         AI.resetAll();
     }
 
