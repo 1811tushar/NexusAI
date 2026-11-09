@@ -9,7 +9,7 @@ COPY src ./src
 RUN for i in 1 2 3; do mvn -B -q -Dmaven.test.skip=true package && cp target/nexusai-backend-*.jar app.jar && exit 0; echo "mvn package attempt $i failed, retrying"; sleep $((i*15)); done; exit 1
 
 FROM eclipse-temurin:21-jre
-RUN apt-get update && apt-get install -y --no-install-recommends curl \
+RUN apt-get update && apt-get upgrade -y --no-install-recommends && apt-get install -y --no-install-recommends curl \
     && rm -rf /var/lib/apt/lists/* \
     && groupadd --system nexus && useradd --system --gid nexus --home /app nexus \
     && mkdir -p /data/uploads && chown -R nexus:nexus /data
