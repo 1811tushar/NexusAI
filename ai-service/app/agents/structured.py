@@ -12,6 +12,12 @@ from app.agents.llm_runtime import extract_json
 M = TypeVar("M", bound=BaseModel)
 
 
+def _shape(exc: Exception) -> str:
+    """Field paths + error kinds only (never input values): shows how the model JSON differs from the schema without logging model text."""
+    if isinstance(exc, ValidationError):
+        return ", ".join(f"{'.'.join(str(p) for p in e['loc'])}:{e['type']}" for e in exc.errors()[:8])
+    return type(exc).__name__
+
 def call_structured(ctx: RunContext, tag: str, system: str, user: str, model: type[M], *, repair: bool = True) -> M | None:
     last_error = ""
     prompt_user = user
@@ -23,6 +29,6 @@ def call_structured(ctx: RunContext, tag: str, system: str, user: str, model: ty
             last_error = str(exc).splitlines()[0][:200]
             prompt_user = (user + "\n\nYour previous reply was not valid for the required JSON schema (" + last_error +
                            "). Reply again with ONLY the corrected JSON object, no extra text.")
-            ctx.log.warning("structured output invalid for %s (attempt %d): %s", tag, attempt + 1, last_error)
+            ctx.log.warning("structured output invalid for %s (attempt %d): %s | %s", tag, attempt + 1, last_error, _shape(exc))
     ctx.guardrail("OUTPUT", "FLAGGED", "INVALID_OUTPUT", f"The {tag} step returned an invalid structure twice; a safe fallback was used.")
     return None

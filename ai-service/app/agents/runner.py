@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import threading
+import traceback
 from collections.abc import AsyncIterator
 from typing import Any
 
@@ -36,6 +37,11 @@ def terminal_event(values: dict[str, Any]) -> AgentEvent:
     return ev.done(status, conf, int(values.get("loop", 0)), int(usage.get("inputTokens", 0)), int(usage.get("outputTokens", 0)), int(values.get("elapsed_ms", 0)))
 
 
+def _where(exc: BaseException) -> str:
+    """Last frames of the traceback as file:line:function ONLY: no exception text or values (AI-FD-06 keeps logs free of document text)."""
+    frames = traceback.extract_tb(exc.__traceback__)[-6:]
+    return " <- ".join(f"{fr.filename.replace(chr(92), '/').rsplit('/', 1)[-1]}:{fr.lineno}:{fr.name}" for fr in reversed(frames))
+
 def error_event(exc: BaseException) -> AgentEvent:
     """ADD-FH-03: whole-run failure -> readable explanation, no stack, no provider internals. The partial trace is already persisted by Spring."""
     if isinstance(exc, LlmRateLimited):
@@ -44,7 +50,7 @@ def error_event(exc: BaseException) -> AgentEvent:
         return ev.error("AI_SERVICE_UNAVAILABLE", "The language model is not configured on the AI service (missing provider key).", False)
     if isinstance(exc, LlmError) or type(exc).__name__ in ("OperationalError", "PoolTimeout"):
         return ev.error("AI_SERVICE_UNAVAILABLE", "A service the investigation depends on (language model or database) is unavailable. Try again shortly.", True)
-    log.error("investigation failed: %s", type(exc).__name__, exc_info=True)
+    log.error("investigation failed: %s at %s", type(exc).__name__, _where(exc))
     return ev.error("INTERNAL_ERROR", "The investigation stopped because of an unexpected internal error.", False)
 
 

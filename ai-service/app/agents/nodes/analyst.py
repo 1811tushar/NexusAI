@@ -1,9 +1,9 @@
 """analyst (AI-AG-06): evidence -> discrete, checkable claims (isKey flagged, evidence keys). On a loop only the FOCUS claims are rewritten."""
 from __future__ import annotations
 
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
 
 from app.agents import events as ev
 from app.agents.common import evidence_block, labels_of, node
@@ -14,8 +14,20 @@ from app.agents.structured import call_structured
 MAX_CLAIMS = 8
 
 
+def _claim_key(value: object) -> object:
+    """Models send the claim key as a number (1, 2, ...) instead of "c1": normalise it to the c<N> form. Anything that is not a string or number becomes None (a new claim)."""
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return f"c{int(value)}"
+    if isinstance(value, str):
+        v = value.strip()
+        return f"c{int(v)}" if v.isdigit() else value
+    return None
+
+
 class ClaimIn(BaseModel):
-    key: str | None = None
+    key: Annotated[str | None, BeforeValidator(_claim_key)] = None
     text: str = Field(min_length=5, max_length=700)
     isKey: bool = False  # noqa: N815
     evidence: list[str] = []

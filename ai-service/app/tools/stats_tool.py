@@ -7,10 +7,11 @@ Metrics: revenue, units, cost, gross_profit (sales) | marketing_spend | active_c
 from __future__ import annotations
 
 import datetime as dt
-from typing import TYPE_CHECKING, Literal
+import re
+from typing import TYPE_CHECKING, Annotated, Literal
 
 import pandas as pd
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
 
 from app.agents.injection import wrap_untrusted
 from app.tools.evidence_utils import table_evidence, text_table
@@ -22,6 +23,18 @@ if TYPE_CHECKING:
 Metric = Literal["revenue", "units", "cost", "gross_profit", "marketing_spend", "active_customers", "new_customers", "churned_customers"]
 Dimension = Literal["none", "region", "product", "category", "region_category", "channel"]
 MONTH = r"^\d{4}-(0[1-9]|1[0-2])$"
+
+
+def _month(value: object) -> object:
+    """Models naturally write 2026-04-01 or 2026-4 (the prompt says months are stored as first days): normalise to YYYY-MM BEFORE the strict pattern check."""
+    if isinstance(value, str):
+        m = re.fullmatch(r"(\d{4})-(\d{1,2})(?:-\d{1,2})?", value.strip())
+        if m:
+            return f"{m.group(1)}-{int(m.group(2)):02d}"
+    return value
+
+
+MonthStr = Annotated[str, BeforeValidator(_month)]
 
 METRIC_TABLE = {"revenue": "sales", "units": "sales", "cost": "sales", "gross_profit": "sales", "marketing_spend": "marketing",
                 "active_customers": "customers", "new_customers": "customers", "churned_customers": "customers"}
@@ -38,8 +51,8 @@ _SQL = {
 
 
 class Period(BaseModel):
-    start: str = Field(pattern=MONTH, description="first month, YYYY-MM")
-    end: str = Field(pattern=MONTH, description="last month inclusive, YYYY-MM")
+    start: MonthStr = Field(pattern=MONTH, description="first month, YYYY-MM")
+    end: MonthStr = Field(pattern=MONTH, description="last month inclusive, YYYY-MM")
 
 
 class CompareArgs(BaseModel):
@@ -56,8 +69,8 @@ class ContributionArgs(CompareArgs):
 class AnomalyArgs(BaseModel):
     metric: Metric
     dimension: Dimension = "region"
-    start: str = Field(pattern=MONTH)
-    end: str = Field(pattern=MONTH)
+    start: MonthStr = Field(pattern=MONTH)
+    end: MonthStr = Field(pattern=MONTH)
     z_threshold: float = Field(2.0, ge=1.0, le=5.0)
 
 

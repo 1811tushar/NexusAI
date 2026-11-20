@@ -32,7 +32,7 @@ def node(name: str) -> Callable[[Callable[[dict[str, Any], RunContext], dict[str
             with observability.span(f"node.{name}", investigationId=ctx.investigation_id):
                 update = dict(fn(state, ctx) or {})
             ms = int((time.perf_counter() - t0) * 1000)
-            ctx.log.info("node %s finished in %d ms", name)
+            ctx.log.info("node %s finished in %d ms", name, ms)
             update["elapsed_ms"] = ms
             update["usage"] = ctx.take_usage()
             return update

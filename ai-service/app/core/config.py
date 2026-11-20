@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     groq_model: str | None = None
     llm_max_retries: int = Field(4, ge=0, le=10)
     llm_timeout_s: float = 60.0
+    llm_max_rpm: int = Field(0, ge=0)  # client-side pacing (0 = off): keep ~80% of the provider limit, free Gemini tier is 15 requests/min
+    llm_max_tpm: int = Field(0, ge=0)  # same for estimated prompt tokens/min, free Gemini tier is 250000
 
     # --- embeddings / reranker ---
     embedding_model: str = "BAAI/bge-small-en-v1.5"   # "hashing" = deterministic test embedder (no download)

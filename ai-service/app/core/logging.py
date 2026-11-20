@@ -16,7 +16,10 @@ _STD = set(logging.LogRecord("", 0, "", 0, "", (), None).__dict__) | {"message",
 
 class _SafeFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
-        msg = record.getMessage()
+        try:
+            msg = record.getMessage()
+        except Exception:  # a malformed call (e.g. a library passes args to a message without placeholders) must never break the caller
+            msg = f"[bad log call: {len(record.args or ())} arg(s) for template] {record.msg}"
         msg = redact_text(msg)
         if len(msg) > MAX_MESSAGE_CHARS:
             msg = msg[:MAX_MESSAGE_CHARS] + f"...[truncated {len(msg) - MAX_MESSAGE_CHARS} chars]"
